@@ -1,0 +1,66 @@
+const WA_API_URL = `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+const HEADERS = {
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+};
+
+export async function sendText(to: string, body: string) {
+  await fetch(WA_API_URL, {
+    method: "POST",
+    headers: HEADERS,
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to,
+      type: "text",
+      text: { body },
+    }),
+  });
+}
+
+export async function sendButtons(
+  to: string,
+  body: string,
+  buttons: { id: string; title: string }[]
+) {
+  await fetch(WA_API_URL, {
+    method: "POST",
+    headers: HEADERS,
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to,
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: { text: body },
+        action: {
+          buttons: buttons.map((b) => ({
+            type: "reply",
+            reply: { id: b.id, title: b.title },
+          })),
+        },
+      },
+    }),
+  });
+}
+
+export async function sendList(
+  to: string,
+  body: string,
+  buttonLabel: string,
+  sections: { title: string; rows: { id: string; title: string; description?: string }[] }[]
+) {
+  await fetch(WA_API_URL, {
+    method: "POST",
+    headers: HEADERS,
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to,
+      type: "interactive",
+      interactive: {
+        type: "list",
+        body: { text: body },
+        action: { button: buttonLabel, sections },
+      },
+    }),
+  });
+}
