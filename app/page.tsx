@@ -92,7 +92,7 @@ export default function Home() {
 
           <div className="justify-self-center lg:justify-self-end">
             <Image
-              src="/hero-illustration.png"
+              src="/Hero.png"
               alt="Afrique Solution"
               width={818}
               height={600}
