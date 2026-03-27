@@ -3,8 +3,7 @@ import { upsertUser, createOrder } from "@/lib/db/queries";
 import { getProducts as getCatalogProducts, CatalogService, CatalogRegion } from "@/lib/services/catalog";
 import { sendText, sendButtons, sendList } from "@/lib/whatsapp/sender";
 import { t } from "@/lib/whatsapp/messages";
-import { initiateCharge, getNetworkInfo } from "@/lib/payment/flutterwave";
-import { getProducts as getCatalogProductById } from "@/lib/services/catalog";
+import { initiateDeposit } from "@/lib/payment/pawapay";
 
 export async function processMessage(session: UserSession, incoming: string) {
   const lang = session.language ?? "fr";
@@ -192,29 +191,22 @@ async function handleChoosePayment(session: UserSession, msg: string, lang: Lang
   const product = allProducts.find((p) => p.id === session.selected_product_id);
   const amount = product?.price ?? 0;
 
-  const { network, country, currency } = getNetworkInfo(
-    msg as PaymentMethod,
-    session.selected_region ?? "drc"
-  );
-
-  const charge = await initiateCharge({
+  const deposit = await initiateDeposit({
     orderId,
     phone: session.phone,
     amount,
-    currency,
-    network,
-    country,
-    email: `${session.phone.replace("+", "")}@afriquesolution.site`,
+    paymentMethod: msg as PaymentMethod,
+    region: session.selected_region ?? "drc",
   });
 
-  if (charge.success) {
+  if (deposit.success) {
     await sendText(session.phone, t("awaiting_payment", lang));
   } else {
     await sendText(
       session.phone,
       lang === "fr"
-        ? `Erreur de paiement : ${charge.message}. Veuillez réessayer.`
-        : `Payment error: ${charge.message}. Please try again.`
+        ? `Erreur de paiement : ${deposit.message}. Veuillez réessayer.`
+        : `Payment error: ${deposit.message}. Please try again.`
     );
     await upsertUser({ phone: session.phone, step: "choose_payment" });
   }
