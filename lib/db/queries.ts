@@ -72,3 +72,18 @@ export async function updateOrderStatus(id: string, status: "pending" | "paid" |
     args: [status, id],
   });
 }
+
+export async function isMessageProcessed(messageId: string): Promise<boolean> {
+  const result = await db.execute({
+    sql: "SELECT message_id FROM processed_messages WHERE message_id = ?",
+    args: [messageId],
+  });
+  return result.rows.length > 0;
+}
+
+export async function markMessageProcessed(messageId: string): Promise<void> {
+  await db.execute({
+    sql: "INSERT OR IGNORE INTO processed_messages (message_id) VALUES (?)",
+    args: [messageId],
+  });
+}

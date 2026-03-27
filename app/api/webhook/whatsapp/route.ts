@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUser, upsertUser } from "@/lib/db/queries";
+import { getUser, upsertUser, isMessageProcessed, markMessageProcessed } from "@/lib/db/queries";
 import { processMessage } from "@/lib/flow/engine";
 import { sendButtons } from "@/lib/whatsapp/sender";
 import { t } from "@/lib/whatsapp/messages";
@@ -27,6 +27,13 @@ export async function POST(req: NextRequest) {
     const message = change?.value?.messages?.[0];
 
     if (!message) return NextResponse.json({ status: "no_message" });
+
+    // Deduplicate — ignore already processed message IDs
+    const messageId = message.id as string;
+    if (await isMessageProcessed(messageId)) {
+      return NextResponse.json({ status: "duplicate" });
+    }
+    await markMessageProcessed(messageId);
 
     const phone = message.from as string;
     const text: string =

@@ -33,5 +33,10 @@ export async function initSchema() {
       payment_method TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS processed_messages (
+      message_id TEXT PRIMARY KEY,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 }
