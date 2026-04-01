@@ -5,9 +5,9 @@ const BASE_URL = process.env.PAWAPAY_BASE_URL ?? "https://api.sandbox.pawapay.io
 
 // PawaPay provider codes per payment method + region
 const providerMap: Record<PaymentMethod, Record<string, string>> = {
-  airtel_money: { drc: "AIRTEL_MONEY_COD", rwanda: "AIRTEL_MONEY_RWA", burundi: "" },
-  mpesa:        { drc: "MPESA_COD",        rwanda: "",                  burundi: "" },
-  orange_money: { drc: "ORANGE_MONEY_COD", rwanda: "",                  burundi: "" },
+  airtel_money: { drc: "AIRTEL_COD",        rwanda: "AIRTEL_RWA",    burundi: "" },
+  mpesa:        { drc: "VODACOM_MPESA_COD",  rwanda: "MTN_MOMO_RWA", burundi: "" },
+  orange_money: { drc: "ORANGE_COD",         rwanda: "",              burundi: "" },
 };
 
 const currencyMap: Record<string, string> = {

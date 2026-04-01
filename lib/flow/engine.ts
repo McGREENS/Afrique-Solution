@@ -160,11 +160,26 @@ async function handleChooseProduct(session: UserSession, msg: string, lang: Lang
 
 async function handleEnterDecoder(session: UserSession, raw: string, lang: Language) {
   await upsertUser({ phone: session.phone, decoder_number: raw.trim(), step: "choose_payment" });
-  await sendButtons(session.phone, t("choose_payment", lang), [
-    { id: "airtel_money", title: "Airtel Money" },
-    { id: "mpesa", title: "Vodacom M-Pesa" },
-    { id: "orange_money", title: "Orange Money" },
-  ]);
+
+  const region = session.selected_region ?? "drc";
+  const buttons: { id: string; title: string }[] = [];
+
+  if (region === "drc") {
+    buttons.push(
+      { id: "airtel_money", title: "Airtel Money" },
+      { id: "mpesa", title: "Vodacom M-Pesa" },
+      { id: "orange_money", title: "Orange Money" }
+    );
+  } else if (region === "rwanda") {
+    buttons.push(
+      { id: "airtel_money", title: "Airtel Money" },
+      { id: "mpesa", title: "MTN MoMo" }
+    );
+  } else {
+    buttons.push({ id: "airtel_money", title: "Airtel Money" });
+  }
+
+  await sendButtons(session.phone, t("choose_payment", lang), buttons);
 }
 
 async function handleChoosePayment(session: UserSession, msg: string, lang: Language) {
