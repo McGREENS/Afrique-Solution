@@ -16,7 +16,18 @@ const currencyMap: Record<string, string> = {
   burundi: "BIF",
 };
 
-export interface DepositResult {
+// Approximate exchange rates (USD base) — update periodically
+const exchangeRates: Record<string, number> = {
+  CDF: 2800,  // 1 USD = ~2800 CDF
+  RWF: 1300,  // 1 USD = ~1300 RWF
+  BIF: 2900,  // 1 USD = ~2900 BIF
+};
+
+function toLocalCurrency(amountUSD: number, currency: string): string {
+  const rate = exchangeRates[currency] ?? 1;
+  const converted = Math.round(amountUSD * rate);
+  return String(converted);
+}
   success: boolean;
   depositId?: string;
   message: string;
@@ -49,7 +60,7 @@ export async function initiateDeposit(params: {
         provider,
       },
     },
-    amount: String(params.amount),
+    amount: toLocalCurrency(params.amount, currency),
     currency,
     clientReferenceId: params.orderId,
     customerMessage: "Afrique Solution",
