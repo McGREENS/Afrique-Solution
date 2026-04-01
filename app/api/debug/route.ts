@@ -7,10 +7,12 @@ export async function GET(req: NextRequest) {
   }
 
   const token = process.env.PAWAPAY_API_TOKEN ?? "";
+  const baseUrl = process.env.PAWAPAY_BASE_URL ?? "https://api.sandbox.pawapay.io";
 
-  return NextResponse.json({
-    pawapay_token_length: token.length,
-    pawapay_token_prefix: token.substring(0, 20),
-    pawapay_base_url: process.env.PAWAPAY_BASE_URL,
+  const res = await fetch(`${baseUrl}/v2/active-conf`, {
+    headers: { Authorization: `Bearer ${token}` },
   });
+
+  const data = await res.json();
+  return NextResponse.json(data);
 }
