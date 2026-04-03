@@ -2,34 +2,37 @@
 export const catalog = {
   canal: {
     drc: [
-      { id: "canal_drc_access", name: "Canal+ Access", price: 10 },
-      { id: "canal_drc_evasion", name: "Canal+ Évasion", price: 18 },
-      { id: "canal_drc_tout", name: "Canal+ Tout", price: 30 },
+      { id: "canal_drc_access",    name: "Canal+ Accès",              price: 10 },
+      { id: "canal_drc_evasion",   name: "Canal+ Évasion",            price: 20 },
+      { id: "canal_drc_access_plus", name: "Canal+ Accès+",           price: 27 },
+      { id: "canal_drc_tout",      name: "Canal+ Tout Canal",         price: 50 },
+      { id: "canal_drc_dstv",      name: "Options DStv",              price: 10 },
+      { id: "canal_drc_evasion_dstv", name: "Évasion + DStv",        price: 30 },
+      { id: "canal_drc_access_dstv",  name: "Accès+ + DStv",         price: 31 },
     ],
     rwanda: [
-      { id: "canal_rw_access", name: "Canal+ Access", price: 10 },
-      { id: "canal_rw_evasion", name: "Canal+ Évasion", price: 18 },
+      { id: "canal_rw_access",     name: "Canal+ Accès",              price: 4.8 },
+      { id: "canal_rw_evasion",    name: "Canal+ Évasion",            price: 7.8 },
+      { id: "canal_rw_access_plus", name: "Canal+ Accès+",            price: 15 },
+      { id: "canal_rw_tout",       name: "Canal+ Tout Canal",         price: 26 },
+      { id: "canal_rw_dstv",       name: "Options DStv",              price: 9 },
+      { id: "canal_rw_evasion_dstv", name: "Évasion + DStv",         price: 17 },
+      { id: "canal_rw_access_dstv",  name: "Accès+ + DStv",          price: 23 },
     ],
     burundi: [
-      { id: "canal_bi_access", name: "Canal+ Access", price: 10 },
-      { id: "canal_bi_evasion", name: "Canal+ Évasion", price: 18 },
+      { id: "canal_bi_access",     name: "Canal+ Accès",              price: 7 },
+      { id: "canal_bi_evasion",    name: "Canal+ Évasion",            price: 13 },
+      { id: "canal_bi_access_plus", name: "Canal+ Accès+",            price: 18 },
+      { id: "canal_bi_tout",       name: "Canal+ Tout Canal",         price: 32 },
+      { id: "canal_bi_dstv",       name: "Options DStv",              price: 6 },
+      { id: "canal_bi_evasion_dstv", name: "Évasion + DStv",         price: 19 },
+      { id: "canal_bi_access_dstv",  name: "Accès+ + DStv",          price: 24 },
     ],
   },
   dstv: {
-    drc: [
-      { id: "dstv_drc_padi", name: "DStv Padi", price: 8 },
-      { id: "dstv_drc_confam", name: "DStv Confam", price: 14 },
-      { id: "dstv_drc_compact", name: "DStv Compact", price: 25 },
-      { id: "dstv_drc_premium", name: "DStv Premium", price: 55 },
-    ],
-    rwanda: [
-      { id: "dstv_rw_padi", name: "DStv Padi", price: 8 },
-      { id: "dstv_rw_compact", name: "DStv Compact", price: 25 },
-    ],
-    burundi: [
-      { id: "dstv_bi_padi", name: "DStv Padi", price: 8 },
-      { id: "dstv_bi_compact", name: "DStv Compact", price: 25 },
-    ],
+    drc:     [],
+    rwanda:  [],
+    burundi: [],
   },
   vodacom: {
     drc: [

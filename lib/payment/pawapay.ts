@@ -11,9 +11,9 @@ const providerMap: Record<PaymentMethod, Record<string, string>> = {
 };
 
 const currencyMap: Record<string, string> = {
-  drc:     "CDF",
-  rwanda:  "RWF",
-  burundi: "BIF",
+  drc:     "USD",
+  rwanda:  "USD",
+  burundi: "USD",
 };
 
 // Approximate exchange rates (USD base) — update periodically

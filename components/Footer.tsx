@@ -152,7 +152,7 @@ export default function Footer() {
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-8 py-5 md:px-14">
           <span className="text-[13px] text-white/40">{t(copy.rights)}</span>
           <div className="flex items-center gap-6 text-[13px] text-white/40">
-            <a href="#" className="transition-colors hover:text-white">{t(copy.privacy)}</a>
+            <a href="/privacy" className="transition-colors hover:text-white">{t(copy.privacy)}</a>
             <a href="#" className="transition-colors hover:text-white">{t(copy.terms)}</a>
           </div>
         </div>
