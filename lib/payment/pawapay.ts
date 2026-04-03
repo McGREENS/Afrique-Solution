@@ -28,6 +28,7 @@ function toLocalCurrency(amountUSD: number, currency: string): string {
   const converted = Math.round(amountUSD * rate);
   return String(converted);
 }
+export interface DepositResult {
   success: boolean;
   depositId?: string;
   message: string;
