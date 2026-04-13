@@ -3,7 +3,6 @@ import { upsertUser, createOrder } from "@/lib/db/queries";
 import { getProducts as getCatalogProducts, CatalogService, CatalogRegion } from "@/lib/services/catalog";
 import { sendText, sendButtons, sendList } from "@/lib/whatsapp/sender";
 import { t } from "@/lib/whatsapp/messages";
-import { initiateDeposit } from "@/lib/payment/pawapay";
 
 export async function processMessage(session: UserSession, incoming: string) {
   const lang = session.language ?? "fr";
@@ -198,31 +197,46 @@ async function handleChoosePayment(session: UserSession, msg: string, lang: Lang
     payment_method: msg,
   });
 
-  // Look up product price from catalog
   const allProducts = getCatalogProducts(
     session.selected_service as CatalogService,
     session.selected_region as CatalogRegion
   );
   const product = allProducts.find((p) => p.id === session.selected_product_id);
-  const amount = product?.price ?? 0;
 
-  const deposit = await initiateDeposit({
-    orderId,
-    phone: session.phone,
-    amount,
-    paymentMethod: msg as PaymentMethod,
-    region: session.selected_region ?? "drc",
-  });
+  const paymentNumbers: Record<PaymentMethod, string> = {
+    airtel_money: "+250796552804",
+    mpesa:        "+250780115764", 
+    orange_money: "+250796552804",
+  };
 
-  if (deposit.success) {
-    await sendText(session.phone, t("awaiting_payment", lang));
-  } else {
-    await sendText(
-      session.phone,
-      lang === "fr"
-        ? `Erreur de paiement : ${deposit.message}. Veuillez réessayer.`
-        : `Payment error: ${deposit.message}. Please try again.`
-    );
-    await upsertUser({ phone: session.phone, step: "choose_payment" });
-  }
+  const paymentLabels: Record<PaymentMethod, string> = {
+    airtel_money: "Airtel Money",
+    mpesa:        "Vodacom M-Pesa",
+    orange_money: "Orange Money",
+  };
+
+  const number = paymentNumbers[msg as PaymentMethod];
+  const label  = paymentLabels[msg as PaymentMethod];
+
+  const instructions = lang === "fr"
+    ? `✅ *Commande reçue !*\n\n` +
+      `📦 *Forfait :* ${product?.name ?? session.selected_product_id}\n` +
+      `💰 *Montant :* $${product?.price ?? "—"}\n` +
+      `📟 *Décodeur :* ${session.decoder_number}\n` +
+      `🆔 *Référence :* ${orderId.slice(0, 8).toUpperCase()}\n\n` +
+      `👉 Envoyez *$${product?.price ?? "—"}* via *${label}* au numéro :\n` +
+      `*${number}*\n\n` +
+      `Mentionnez la référence *${orderId.slice(0, 8).toUpperCase()}* dans le commentaire.\n\n` +
+      `⏳ Votre abonnement sera activé dans les *30 minutes* après confirmation du paiement.`
+    : `✅ *Order received!*\n\n` +
+      `📦 *Package:* ${product?.name ?? session.selected_product_id}\n` +
+      `💰 *Amount:* $${product?.price ?? "—"}\n` +
+      `📟 *Decoder:* ${session.decoder_number}\n` +
+      `🆔 *Reference:* ${orderId.slice(0, 8).toUpperCase()}\n\n` +
+      `👉 Send *$${product?.price ?? "—"}* via *${label}* to:\n` +
+      `*${number}*\n\n` +
+      `Include reference *${orderId.slice(0, 8).toUpperCase()}* in the comment.\n\n` +
+      `⏳ Your subscription will be activated within *30 minutes* after payment confirmation.`;
+
+  await sendText(session.phone, instructions);
 }
