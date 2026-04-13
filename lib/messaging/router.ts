@@ -1,6 +1,5 @@
 import { MessageChannel, MessagePayload, MessageResponse, ChannelProvider } from './channels';
 import { WhatsAppProvider } from './whatsapp';
-import { TwilioWhatsAppProvider } from './twilio';
 
 export class MessageRouter {
   private providers: Map<string, ChannelProvider> = new Map();
@@ -15,38 +14,12 @@ export class MessageRouter {
     } catch (error) {
       console.warn('WhatsApp Business API provider not available:', error);
     }
-
-    // Initialize Twilio WhatsApp provider
-    try {
-      const twilioWhatsAppProvider = new TwilioWhatsAppProvider();
-      if (twilioWhatsAppProvider.isAvailable()) {
-        this.providers.set('twilio-whatsapp', twilioWhatsAppProvider);
-      }
-    } catch (error) {
-      console.warn('Twilio WhatsApp provider not available:', error);
-    }
   }
 
   async send(payload: MessagePayload): Promise<MessageResponse> {
-    const preferredProvider = this.getPreferredProvider();
-    
-    // Try preferred provider first
-    const provider = this.providers.get(preferredProvider);
+    const provider = this.providers.get('whatsapp-business');
     if (provider) {
-      const result = await provider.send({ ...payload, channel: 'whatsapp' });
-      if (result.success) {
-        return result;
-      }
-    }
-
-    // Fallback to other WhatsApp provider
-    for (const [providerName, fallbackProvider] of this.providers) {
-      if (providerName !== preferredProvider) {
-        const result = await fallbackProvider.send({ ...payload, channel: 'whatsapp' });
-        if (result.success) {
-          return result;
-        }
-      }
+      return await provider.send({ ...payload, channel: 'whatsapp' });
     }
 
     return {
@@ -54,11 +27,6 @@ export class MessageRouter {
       error: 'No available WhatsApp providers',
       channel: 'whatsapp'
     };
-  }
-
-  private getPreferredProvider(): string {
-    // Prefer WhatsApp Business API if available, fallback to Twilio
-    return this.providers.has('whatsapp-business') ? 'whatsapp-business' : 'twilio-whatsapp';
   }
 
   getAvailableChannels(): MessageChannel[] {
