@@ -15,7 +15,7 @@ const copy = {
   colCompany:  { fr: "Entreprise", en: "Company" },
   colContact:  { fr: "Contact", en: "Contact" },
   startNow:    { fr: "Démarrer sur WhatsApp", en: "Start on WhatsApp" },
-  rights:      { fr: "© 2025 Afrique Solution. Tous droits réservés.", en: "© 2025 Afrique Solution. All rights reserved." },
+  rights:      { fr: "© 2025 Afri Sol – La Divinité LTD. Tous droits réservés.", en: "© 2025 Afri Sol – La Divinité LTD. All rights reserved." },
   privacy:     { fr: "Politique de confidentialité", en: "Privacy Policy" },
   terms:       { fr: "Conditions d'utilisation", en: "Terms of use" },
 };
@@ -27,13 +27,13 @@ const services = {
 
 const company = {
   fr: [
-    { label: "À propos",         href: "#" },
+    { label: "À propos",         href: "/about" },
     { label: "Comment ça marche", href: "#how" },
     { label: "Pays couverts",    href: "#countries" },
     { label: "Contact",          href: "#contact" },
   ],
   en: [
-    { label: "About us",    href: "#" },
+    { label: "About us",    href: "/about" },
     { label: "How it works", href: "#how" },
     { label: "Countries",   href: "#countries" },
     { label: "Contact",     href: "#contact" },
@@ -57,7 +57,7 @@ export default function Footer() {
           <div>
             <div className="mb-5 flex items-center gap-2">
               <span className="text-[22px] leading-none text-[#b4f75f]">✦</span>
-              <span className="text-[26px] font-medium tracking-tight">Afrique Solution</span>
+              <span className="text-[26px] font-medium tracking-tight">Afri Sol – La Divinité LTD</span>
             </div>
             <p className="mb-8 max-w-[300px] text-[15px] leading-[1.7] text-white/60">
               {t(copy.tagline)}
@@ -112,20 +112,20 @@ export default function Footer() {
             </h4>
             <ul className="flex flex-col gap-4">
               <li className="flex items-start gap-3">
-                <MessageCircle size={17} strokeWidth={1.8} className="mt-0.5 shrink-0 text-[#b4f75f]" />
-                <a href={WA_LINK} className="text-[15px] text-white/65 transition-colors hover:text-white">
-                  {WA_NUMBER}
+                <Phone size={17} strokeWidth={1.8} className="mt-0.5 shrink-0 text-[#b4f75f]" />
+                <a href="tel:+250780115764" className="text-[15px] text-white/65 transition-colors hover:text-white">
+                  +250 780 115 764
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <Mail size={17} strokeWidth={1.8} className="mt-0.5 shrink-0 text-[#b4f75f]" />
-                <a href="mailto:contact@afriquesolution.site" className="text-[15px] text-white/65 transition-colors hover:text-white">
-                  contact@afriquesolution.site
+                <a href="mailto:laurierhab@gmail.com" className="text-[15px] text-white/65 transition-colors hover:text-white">
+                  laurierhab@gmail.com
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin size={17} strokeWidth={1.8} className="mt-0.5 shrink-0 text-[#b4f75f]" />
-                <span className="text-[15px] text-white/65">DRC · Rwanda · Burundi</span>
+                <span className="text-[15px] text-white/65">Kigali, Rwanda, Nyarubande, Mbugangari, Gisenyi, Rubavu, Iburengerazuba</span>
               </li>
             </ul>
 
