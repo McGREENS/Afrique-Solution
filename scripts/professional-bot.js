@@ -142,19 +142,12 @@ const pricing = {
 };
 
 client.on('qr', (qr) => {
-  const timestamp = new Date().toLocaleString();
-  console.log(`\n\n🔥 FRESH QR CODE - ${timestamp}`);
-  console.log('⚡ SCAN WITHIN 15 SECONDS!');
+  console.log('\n\n🔥 QR CODE GENERATED - SESSION NOT FOUND');
+  console.log('⚡ This should not happen if session files are present');
   console.log('\n🔗 QR STRING:');
   console.log(qr);
-  console.log('\n📱 STEPS:');
-  console.log('1. Copy the QR string above');
-  console.log('2. Go to https://www.qr-code-generator.com/');
-  console.log('3. Paste and generate QR code');
-  console.log('4. Open WhatsApp BUSINESS (not regular WhatsApp)');
-  console.log('5. Settings > Linked Devices > Link a Device');
-  console.log('6. Scan IMMEDIATELY');
-  console.log('\n⚠️  IMPORTANT: Use WhatsApp BUSINESS app, not regular WhatsApp!\n');
+  console.log('\n⚠️  If you see this, the session files may not have transferred correctly');
+  console.log('\n');
 });
 
 client.on('authenticated', () => {
