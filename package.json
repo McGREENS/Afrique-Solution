@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "whatsapp:connect": "node scripts/connect-whatsapp.js",
-    "whatsapp:setup": "npm install whatsapp-web.js qrcode-terminal && node scripts/connect-whatsapp.js"
+    "whatsapp:setup": "npm install whatsapp-web.js qrcode-terminal && node scripts/connect-whatsapp.js",
+    "railway:start": "node railway-start.js"
   },
   "dependencies": {
     "@libsql/client": "^0.17.2",
