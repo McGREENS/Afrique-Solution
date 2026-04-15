@@ -140,13 +140,23 @@ const pricing = {
 client.on('qr', (qr) => {
   console.log('📱 SCAN THIS QR CODE WITH YOUR WHATSAPP BUSINESS APP:');
   console.log('');
+  
+  // Generate QR code in terminal
   qrcode.generate(qr, { small: true });
+  
+  // Also save QR code as text for Railway
+  console.log('');
+  console.log('🔗 QR CODE STRING (if terminal QR is not visible):');
+  console.log(qr);
+  console.log('');
+  console.log('📋 You can also generate QR code at: https://www.qr-code-generator.com/');
+  console.log('📋 Just paste the QR string above into any QR generator');
   console.log('');
   console.log('Steps:');
   console.log('1. Open WhatsApp Business App on your phone');
   console.log('2. Go to Settings > Linked Devices');
   console.log('3. Tap "Link a Device"');
-  console.log('4. Scan the QR code above');
+  console.log('4. Scan the QR code above OR generate it from the string');
   console.log('');
 });
 
