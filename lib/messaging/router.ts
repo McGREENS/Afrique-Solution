@@ -1,11 +1,21 @@
 import { MessageChannel, MessagePayload, MessageResponse, ChannelProvider } from './channels';
 import { WhatsAppProvider } from './whatsapp';
+import { whatsappWebProvider } from './whatsapp-web-instance';
 
 export class MessageRouter {
   private providers: Map<string, ChannelProvider> = new Map();
 
   constructor() {
-    // Initialize WhatsApp Business API provider
+    // Initialize WhatsApp Web provider (primary)
+    try {
+      if (whatsappWebProvider.isAvailable()) {
+        this.providers.set('whatsapp-web', whatsappWebProvider);
+      }
+    } catch (error) {
+      console.warn('WhatsApp Web provider not available:', error);
+    }
+
+    // Initialize WhatsApp Business API provider (fallback)
     try {
       const whatsappProvider = new WhatsAppProvider();
       if (whatsappProvider.isAvailable()) {
@@ -17,7 +27,16 @@ export class MessageRouter {
   }
 
   async send(payload: MessagePayload): Promise<MessageResponse> {
-    // Use WhatsApp Business API
+    // Try WhatsApp Web first (primary)
+    const webProvider = this.providers.get('whatsapp-web');
+    if (webProvider && webProvider.isAvailable()) {
+      const result = await webProvider.send({ ...payload, channel: 'whatsapp' });
+      if (result.success) {
+        return result;
+      }
+    }
+
+    // Fallback to WhatsApp Business API
     const businessProvider = this.providers.get('whatsapp-business');
     if (businessProvider) {
       const result = await businessProvider.send({ ...payload, channel: 'whatsapp' });
@@ -28,7 +47,7 @@ export class MessageRouter {
 
     return {
       success: false,
-      error: 'WhatsApp Business API not available',
+      error: 'No WhatsApp providers available',
       channel: 'whatsapp'
     };
   }
