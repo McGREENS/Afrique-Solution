@@ -10,7 +10,8 @@ console.log('🔗 WhatsApp Number:', process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || 
 
 const client = new Client({
   authStrategy: new LocalAuth({
-    clientId: "afrique-solution-railway"
+    clientId: "afrique-solution-railway",
+    dataPath: "/tmp/.wwebjs_auth"
   }),
   puppeteer: {
     headless: true,
@@ -27,7 +28,10 @@ const client = new Client({
       '--disable-features=VizDisplayCompositor',
       '--disable-background-timer-throttling',
       '--disable-backgrounding-occluded-windows',
-      '--disable-renderer-backgrounding'
+      '--disable-renderer-backgrounding',
+      '--disable-extensions',
+      '--disable-default-apps',
+      '--disable-sync'
     ],
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable'
   }
@@ -139,33 +143,23 @@ const pricing = {
 
 client.on('qr', (qr) => {
   const timestamp = new Date().toLocaleString();
-  console.log(`📱 NEW QR CODE GENERATED AT: ${timestamp}`);
-  console.log('⚠️  QR CODE EXPIRES IN 20 SECONDS - SCAN QUICKLY!');
-  console.log('');
-  
-  // Generate QR code in terminal
-  qrcode.generate(qr, { small: true });
-  
-  // Also save QR code as text for Railway
-  console.log('');
-  console.log('🔗 QR CODE STRING (EXPIRES IN 20 SECONDS):');
+  console.log(`\n\n🔥 FRESH QR CODE - ${timestamp}`);
+  console.log('⚡ SCAN WITHIN 15 SECONDS!');
+  console.log('\n🔗 QR STRING:');
   console.log(qr);
-  console.log('');
-  console.log('📋 Quick QR Generator: https://www.qr-code-generator.com/');
-  console.log('📋 1. Copy the string above');
-  console.log('📋 2. Paste into QR generator');
-  console.log('📋 3. Scan IMMEDIATELY with WhatsApp Business');
-  console.log('');
-  console.log('Steps:');
-  console.log('1. Open WhatsApp BUSINESS App (not regular WhatsApp)');
-  console.log('2. Go to Settings > Linked Devices');
-  console.log('3. Tap "Link a Device"');
-  console.log('4. Scan the QR code QUICKLY (expires in 20 seconds)');
-  console.log('');
+  console.log('\n📱 STEPS:');
+  console.log('1. Copy the QR string above');
+  console.log('2. Go to https://www.qr-code-generator.com/');
+  console.log('3. Paste and generate QR code');
+  console.log('4. Open WhatsApp BUSINESS (not regular WhatsApp)');
+  console.log('5. Settings > Linked Devices > Link a Device');
+  console.log('6. Scan IMMEDIATELY');
+  console.log('\n⚠️  IMPORTANT: Use WhatsApp BUSINESS app, not regular WhatsApp!\n');
 });
 
 client.on('authenticated', () => {
   console.log('✅ WhatsApp authenticated successfully!');
+  console.log('🔄 Loading existing session...');
 });
 
 client.on('ready', async () => {
@@ -173,6 +167,8 @@ client.on('ready', async () => {
   console.log('✅ Your business number (+250792593786) is now connected');
   console.log('📞 Customers can message your business number directly');
   console.log('🤖 Professional bot is ready with real pricing!');
+  console.log('💰 Services: Canal+, DSTV, Vodacom, Airtel, Orange');
+  console.log('🌍 Countries: Rwanda, DR Congo, Burundi');
   console.log('');
   console.log('⏳ Bot is now live 24/7 on Railway!');
   console.log('');
@@ -180,10 +176,12 @@ client.on('ready', async () => {
 
 client.on('auth_failure', (msg) => {
   console.error('❌ Authentication failed:', msg);
+  console.log('💡 Session may have expired. Re-authenticate locally and redeploy.');
 });
 
 client.on('disconnected', (reason) => {
   console.log('📱 WhatsApp disconnected:', reason);
+  console.log('🔄 Attempting to reconnect...');
 });
 
 // Handle incoming messages
