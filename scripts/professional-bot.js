@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
-// Professional WhatsApp Bot with Real Pricing and PawaPay
+// Professional WhatsApp Bot for Railway
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
-console.log('🚀 Starting Professional WhatsApp Bot...');
-console.log('📱 Make sure you have WhatsApp Business App installed on your phone');
-console.log('');
+console.log('🚀 Starting Railway WhatsApp Bot...');
+console.log('📱 Environment:', process.env.NODE_ENV || 'development');
+console.log('🔗 WhatsApp Number:', process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+250792593786');
 
 const client = new Client({
   authStrategy: new LocalAuth({
-    clientId: "afrique-solution"
+    clientId: "afrique-solution-railway"
   }),
   puppeteer: {
     headless: true,
@@ -24,11 +24,253 @@ const client = new Client({
       '--single-process',
       '--disable-gpu',
       '--disable-web-security',
-      '--disable-features=VizDisplayCompositor'
+      '--disable-features=VizDisplayCompositor',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding'
     ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable'
   }
 });
+
+// Store user sessions in memory
+const userSessions = new Map();
+
+// Real pricing data
+const pricing = {
+  canal: {
+    rwanda: {
+      'acces': { name: 'ACCES', price: 4.8 },
+      'evasion': { name: 'EVASION', price: 7.8 },
+      'acces_plus': { name: 'ACCES+', price: 15 },
+      'tout_canal': { name: 'TOUT CANAL', price: 26 },
+      'options_dstv': { name: 'Options DSTV', price: 9 },
+      'evasion_dstv': { name: 'EVASION avec DSTV', price: 17 },
+      'acces_plus_dstv': { name: 'ACCES+ avec DSTV', price: 23 }
+    },
+    drc: {
+      'acces': { name: 'ACCES', price: 10 },
+      'evasion': { name: 'EVASION', price: 20 },
+      'acces_plus': { name: 'ACCES+', price: 27 },
+      'tout_canal': { name: 'TOUT CANAL', price: 50 },
+      'options_dstv': { name: 'Options DSTV', price: 10 },
+      'evasion_dstv': { name: 'EVASION avec DSTV', price: 30 },
+      'acces_plus_dstv': { name: 'ACCES+ avec DSTV', price: 31 }
+    },
+    burundi: {
+      'acces': { name: 'ACCES', price: 7 },
+      'evasion': { name: 'EVASION', price: 13 },
+      'acces_plus': { name: 'ACCES+', price: 18 },
+      'tout_canal': { name: 'TOUT CANAL', price: 32 },
+      'options_dstv': { name: 'Options DSTV', price: 6 },
+      'evasion_dstv': { name: 'EVASION avec DSTV', price: 19 },
+      'acces_plus_dstv': { name: 'ACCES+ avec DSTV', price: 24 }
+    }
+  }
+};
+
+client.on('qr', (qr) => {
+  console.log('📱 SCAN THIS QR CODE WITH YOUR WHATSAPP BUSINESS APP:');
+  console.log('');
+  qrcode.generate(qr, { small: true });
+  console.log('');
+  console.log('Steps:');
+  console.log('1. Open WhatsApp Business App on your phone');
+  console.log('2. Go to Settings > Linked Devices');
+  console.log('3. Tap "Link a Device"');
+  console.log('4. Scan the QR code above');
+  console.log('');
+});
+
+client.on('authenticated', () => {
+  console.log('✅ WhatsApp authenticated successfully!');
+});
+
+client.on('ready', async () => {
+  console.log('🎉 WhatsApp Web Client is ready!');
+  console.log('✅ Your business number (+250792593786) is now connected');
+  console.log('📞 Customers can message your business number directly');
+  console.log('🤖 Professional bot is ready with real pricing!');
+  console.log('');
+  console.log('⏳ Bot is now live 24/7 on Railway!');
+  console.log('');
+});
+
+client.on('auth_failure', (msg) => {
+  console.error('❌ Authentication failed:', msg);
+});
+
+client.on('disconnected', (reason) => {
+  console.log('📱 WhatsApp disconnected:', reason);
+});
+
+// Handle incoming messages
+client.on('message', async (message) => {
+  if (message.fromMe) return;
+  
+  try {
+    const contact = await message.getContact();
+    const phone = contact.number;
+    const text = message.body.trim();
+    
+    console.log(`📨 New message from ${contact.name || phone}: ${text}`);
+    
+    // Get or create user session
+    let session = userSessions.get(phone) || {
+      phone: phone,
+      language: 'fr',
+      step: 'choose_language'
+    };
+    
+    let response = '';
+    
+    // Handle restart commands
+    if (text.toLowerCase() === 'menu' || text.toLowerCase() === 'restart') {
+      session.step = 'choose_language';
+      session.language = 'fr';
+      userSessions.set(phone, session);
+    }
+    
+    // Process based on current step
+    switch (session.step) {
+      case 'choose_language':
+        if (text === '1' || text.toLowerCase().includes('english') || text.toLowerCase() === 'en') {
+          session.language = 'en';
+          session.step = 'choose_service';
+          response = `*Welcome to Afrique Solution*\n\nChoose a service:\n\n1. Canal+ (Satellite TV)\n2. DSTV (Satellite TV)\n3. Vodacom (Mobile Data)\n4. Airtel (Mobile Data)\n5. Orange (Mobile Data)\n\nReply with the number of your choice.`;
+        } else if (text === '2' || text.toLowerCase().includes('français') || text.toLowerCase().includes('francais') || text.toLowerCase() === 'fr') {
+          session.language = 'fr';
+          session.step = 'choose_service';
+          response = `*Bienvenue chez Afrique Solution*\n\nChoisissez un service :\n\n1. Canal+ (TV Satellite)\n2. DSTV (TV Satellite)\n3. Vodacom (Data Mobile)\n4. Airtel (Data Mobile)\n5. Orange (Data Mobile)\n\nRépondez avec le numéro de votre choix.`;
+        } else {
+          response = `*Welcome to Afrique Solution*\n*Bienvenue chez Afrique Solution*\n\nPlease choose your language:\nChoisissez votre langue :\n\n1. English\n2. Français\n\nReply with 1 or 2`;
+        }
+        break;
+        
+      case 'choose_service':
+        if (text === '1') {
+          session.selectedService = 'canal';
+          session.step = 'choose_region';
+          response = session.language === 'en' 
+            ? `*Service Selected: Canal+*\n\nChoose your country:\n\n1. DR Congo\n2. Rwanda\n3. Burundi\n\nReply with the number of your choice.`
+            : `*Service choisi : Canal+*\n\nChoisissez votre pays :\n\n1. RD Congo\n2. Rwanda\n3. Burundi\n\nRépondez avec le numéro de votre choix.`;
+        } else {
+          response = session.language === 'en' 
+            ? 'Please choose a valid service (1-5)' 
+            : 'Veuillez choisir un service valide (1-5)';
+        }
+        break;
+        
+      case 'choose_region':
+        const regions = ['drc', 'rwanda', 'burundi'];
+        const regionIndex = parseInt(text) - 1;
+        
+        if (regionIndex >= 0 && regionIndex < regions.length) {
+          session.selectedRegion = regions[regionIndex];
+          session.step = 'choose_package';
+          
+          // Get Canal+ packages for selected region
+          const packages = pricing.canal[session.selectedRegion];
+          const packageKeys = Object.keys(packages);
+          
+          let packageList = '';
+          packageKeys.forEach((key, index) => {
+            const pkg = packages[key];
+            packageList += `${index + 1}. ${pkg.name} - $${pkg.price}\n`;
+          });
+          
+          response = session.language === 'en'
+            ? `*Country: ${regions[regionIndex].toUpperCase()}*\n*Service: CANAL+*\n\nAvailable packages:\n\n${packageList}\nReply with the number of your choice.`
+            : `*Pays : ${regions[regionIndex].toUpperCase()}*\n*Service : CANAL+*\n\nForfaits disponibles :\n\n${packageList}\nRépondez avec le numéro de votre choix.`;
+        } else {
+          response = session.language === 'en' 
+            ? 'Please choose a valid country (1-3)' 
+            : 'Veuillez choisir un pays valide (1-3)';
+        }
+        break;
+        
+      case 'choose_package':
+        const availablePackages = pricing.canal[session.selectedRegion];
+        const packageKeys = Object.keys(availablePackages);
+        const packageIndex = parseInt(text) - 1;
+        
+        if (packageIndex >= 0 && packageIndex < packageKeys.length) {
+          const selectedPackageKey = packageKeys[packageIndex];
+          const selectedPackage = availablePackages[selectedPackageKey];
+          
+          session.selectedPackage = selectedPackageKey;
+          session.selectedPackageName = selectedPackage.name;
+          session.selectedPrice = selectedPackage.price;
+          session.step = 'enter_details';
+          
+          response = session.language === 'en'
+            ? `*Package Selected: ${selectedPackage.name} - $${selectedPackage.price}*\n\nPlease enter your decoder number:\n\nExample: 1234567890`
+            : `*Forfait choisi : ${selectedPackage.name} - $${selectedPackage.price}*\n\nVeuillez entrer votre numéro de décodeur :\n\nExemple : 1234567890`;
+        } else {
+          response = session.language === 'en' 
+            ? `Please choose a valid package (1-${packageKeys.length})` 
+            : `Veuillez choisir un forfait valide (1-${packageKeys.length})`;
+        }
+        break;
+        
+      case 'enter_details':
+        if (text.length >= 6) {
+          session.decoderNumber = text;
+          session.step = 'payment_complete';
+          
+          const orderId = 'AF' + Date.now().toString().slice(-6);
+          
+          response = session.language === 'en'
+            ? `*ORDER CONFIRMATION*\n\nService: CANAL+\nCountry: ${session.selectedRegion.toUpperCase()}\nPackage: ${session.selectedPackageName}\nAmount: $${session.selectedPrice}\nDecoder: ${session.decoderNumber}\nOrder ID: ${orderId}\n\n*PAYMENT INSTRUCTIONS*\n\nSend $${session.selectedPrice} via Mobile Money to:\n+250796552804\n\nInclude reference: ${orderId}\n\nYour service will be activated within 30 minutes after payment confirmation.\n\nNeed help? Reply "menu" to restart.`
+            : `*CONFIRMATION DE COMMANDE*\n\nService : CANAL+\nPays : ${session.selectedRegion.toUpperCase()}\nForfait : ${session.selectedPackageName}\nMontant : $${session.selectedPrice}\nDécodeur : ${session.decoderNumber}\nID Commande : ${orderId}\n\n*INSTRUCTIONS DE PAIEMENT*\n\nEnvoyez $${session.selectedPrice} via Mobile Money à :\n+250796552804\n\nIncluez la référence : ${orderId}\n\nVotre service sera activé dans les 30 minutes après confirmation du paiement.\n\nBesoin d'aide ? Répondez "menu" pour recommencer.`;
+        } else {
+          response = session.language === 'en' 
+            ? 'Please enter a valid decoder number (at least 6 digits)' 
+            : 'Veuillez entrer un numéro de décodeur valide (au moins 6 chiffres)';
+        }
+        break;
+        
+      default:
+        response = session.language === 'en' 
+          ? 'Type "menu" to start over.' 
+          : 'Tapez "menu" pour recommencer.';
+    }
+    
+    // Save session
+    userSessions.set(phone, session);
+    
+    // Send response
+    if (response) {
+      await message.reply(response);
+      console.log('✅ Response sent successfully');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error processing message:', error);
+    try {
+      await message.reply('Sorry, there was an error. Please type "menu" to restart.\nDésolé, il y a eu une erreur. Tapez "menu" pour recommencer.');
+    } catch (replyError) {
+      console.error('❌ Failed to send error message:', replyError);
+    }
+  }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('🛑 Shutting down WhatsApp Bot...');
+  await client.destroy();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('🛑 Shutting down WhatsApp Bot...');
+  await client.destroy();
+  process.exit(0);
+});
+
+// Initialize
+console.log('🔄 Initializing WhatsApp Web Client...');
+client.initialize();
 
 // Store user sessions in memory
 const userSessions = new Map();
