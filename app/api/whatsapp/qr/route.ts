@@ -1,35 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 
-// File path for QR data storage
-const QR_DATA_FILE = path.join(process.cwd(), 'qr-data.json')
-
-// Read QR data from file
-function readQRData() {
-  try {
-    if (fs.existsSync(QR_DATA_FILE)) {
-      const data = JSON.parse(fs.readFileSync(QR_DATA_FILE, 'utf8'))
-      return data
-    }
-  } catch (error) {
-    console.error('Error reading QR data:', error)
-  }
-  return { qrString: '', status: 'disconnected', lastUpdate: '' }
-}
-
-// Write QR data to file
-function writeQRData(data: any) {
-  try {
-    fs.writeFileSync(QR_DATA_FILE, JSON.stringify(data, null, 2))
-  } catch (error) {
-    console.error('Error writing QR data:', error)
-  }
+// In-memory storage for QR data (simple solution for demo)
+let qrData = {
+  qrString: '',
+  status: 'disconnected',
+  lastUpdate: ''
 }
 
 export async function GET() {
   try {
-    const qrData = readQRData()
+    console.log('QR API GET called, current data:', qrData)
     
     return NextResponse.json({
       qrString: qrData.qrString,
@@ -38,7 +18,7 @@ export async function GET() {
       timestamp: new Date().toISOString()
     })
   } catch (error) {
-    console.error('Error in QR API:', error)
+    console.error('Error in QR API GET:', error)
     return NextResponse.json(
       { error: 'Failed to get QR code' },
       { status: 500 }
@@ -51,13 +31,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { qrString, status } = body
     
-    const qrData = {
+    console.log('QR API POST called with:', { qrString: qrString?.substring(0, 50) + '...', status })
+    
+    qrData = {
       qrString: qrString || '',
       status: status || 'disconnected',
       lastUpdate: new Date().toISOString()
     }
     
-    writeQRData(qrData)
+    console.log('QR data updated:', { status: qrData.status, hasQR: !!qrData.qrString })
     
     return NextResponse.json({ success: true })
   } catch (error) {
