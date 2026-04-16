@@ -149,12 +149,12 @@ client.on('qr', async (qr) => {
   console.log('⚡ QR CODE AVAILABLE ON WEBSITE');
   console.log('\n🔗 QR STRING:');
   console.log(qr);
-  console.log('\n🌐 Visit: https://your-domain.vercel.app/admin/whatsapp-qr');
+  console.log('\n🌐 Visit: https://afriquesolution.site/admin/whatsapp-qr');
   console.log('📱 Or scan directly from logs');
   
   // Send QR to website API
   try {
-    const response = await fetch('http://localhost:3000/api/whatsapp/qr', {
+    const response = await fetch('https://afriquesolution.site/api/whatsapp/qr', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ qrString: qr, status: 'qr_ready' })
@@ -173,7 +173,7 @@ client.on('authenticated', async () => {
   
   // Update website status
   try {
-    await fetch('http://localhost:3000/api/whatsapp/qr', {
+    await fetch('https://afriquesolution.site/api/whatsapp/qr', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ qrString: '', status: 'authenticated' })
