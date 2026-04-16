@@ -1,11 +1,1 @@
-[phases.setup]
-nixPkgs = ['nodejs', 'npm']
-
-[phases.install]
-cmds = ['npm ci']
-
-[phases.build]
-cmds = ['npm run build']
-
-[start]
-cmd = 'npm run railway:start'
+[phases.setup]\nnixPkgs = ['nodejs', 'chromium']\n\n[phases.install]\ncmds = ['npm ci']\n\n[start]\ncmd = 'node railway-start.js'\n\n[variables]\nPUPPETEER_EXECUTABLE_PATH = '/nix/store/*/bin/chromium'
