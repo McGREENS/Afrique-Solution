@@ -143,26 +143,44 @@ const pricing = {
   }
 };
 
-client.on('qr', (qr) => {
+client.on('qr', async (qr) => {
   const timestamp = new Date().toLocaleString();
   console.log(`\n\n🔥 RAILWAY QR CODE - ${timestamp}`);
-  console.log('⚡ SCAN THIS QR CODE TO AUTHENTICATE ON RAILWAY');
-  console.log('\n🔗 QR STRING (COPY THIS):');
+  console.log('⚡ QR CODE AVAILABLE ON WEBSITE');
+  console.log('\n🔗 QR STRING:');
   console.log(qr);
-  console.log('\n📱 QUICK STEPS:');
-  console.log('1. Copy the QR string above');
-  console.log('2. Go to https://www.qr-code-generator.com/');
-  console.log('3. Paste and generate QR code');
-  console.log('4. Open WhatsApp BUSINESS app');
-  console.log('5. Settings > Linked Devices > Link a Device');
-  console.log('6. Scan the generated QR code IMMEDIATELY');
-  console.log('\n✅ Once scanned, Railway will save the session permanently!');
+  console.log('\n🌐 Visit: https://your-domain.vercel.app/admin/whatsapp-qr');
+  console.log('📱 Or scan directly from logs');
+  
+  // Send QR to website API
+  try {
+    const response = await fetch('http://localhost:3000/api/whatsapp/qr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qrString: qr, status: 'qr_ready' })
+    });
+    console.log('✅ QR code sent to website');
+  } catch (error) {
+    console.log('⚠️  Website API not available, use QR string above');
+  }
+  
   console.log('\n');
 });
 
-client.on('authenticated', () => {
+client.on('authenticated', async () => {
   console.log('✅ WhatsApp authenticated successfully!');
   console.log('🔄 Loading existing session...');
+  
+  // Update website status
+  try {
+    await fetch('http://localhost:3000/api/whatsapp/qr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qrString: '', status: 'authenticated' })
+    });
+  } catch (error) {
+    console.log('Website API not available');
+  }
 });
 
 client.on('ready', async () => {

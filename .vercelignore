@@ -1,0 +1,19 @@
+# WhatsApp Web.js session files
+.wwebjs_auth/
+.wwebjs_cache/
+
+# Local environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# WhatsApp bot scripts (these run on Railway, not Vercel)
+scripts/
+local-auth.js
+local-whatsapp-test.js
+deploy-session.js
+railway-start.js
+
+# QR data file
+qr-data.json
