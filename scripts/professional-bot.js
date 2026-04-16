@@ -5,13 +5,15 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
 console.log('🚀 Starting Railway WhatsApp Bot...');
-console.log('📱 Environment:', process.env.NODE_ENV || 'development');
+console.log('📱 Environment:', process.env.NODE_ENV || 'production');
 console.log('🔗 WhatsApp Number:', process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+250792593786');
+console.log('⏰ Timestamp:', new Date().toISOString());
+console.log('🔄 Initializing WhatsApp Web Client...');
 
 const client = new Client({
   authStrategy: new LocalAuth({
     clientId: "afrique-solution-railway",
-    dataPath: "/tmp/.wwebjs_auth"
+    dataPath: process.env.RAILWAY_VOLUME_MOUNT_PATH || "/tmp/.wwebjs_auth"
   }),
   puppeteer: {
     headless: true,
@@ -142,11 +144,19 @@ const pricing = {
 };
 
 client.on('qr', (qr) => {
-  console.log('\n\n🔥 QR CODE GENERATED - SESSION NOT FOUND');
-  console.log('⚡ This should not happen if session files are present');
-  console.log('\n🔗 QR STRING:');
+  const timestamp = new Date().toLocaleString();
+  console.log(`\n\n🔥 RAILWAY QR CODE - ${timestamp}`);
+  console.log('⚡ SCAN THIS QR CODE TO AUTHENTICATE ON RAILWAY');
+  console.log('\n🔗 QR STRING (COPY THIS):');
   console.log(qr);
-  console.log('\n⚠️  If you see this, the session files may not have transferred correctly');
+  console.log('\n📱 QUICK STEPS:');
+  console.log('1. Copy the QR string above');
+  console.log('2. Go to https://www.qr-code-generator.com/');
+  console.log('3. Paste and generate QR code');
+  console.log('4. Open WhatsApp BUSINESS app');
+  console.log('5. Settings > Linked Devices > Link a Device');
+  console.log('6. Scan the generated QR code IMMEDIATELY');
+  console.log('\n✅ Once scanned, Railway will save the session permanently!');
   console.log('\n');
 });
 
