@@ -112,19 +112,94 @@ const pricing = {
   },
   vodacom: {
     rwanda: {
-      '1gb': { name: '1GB Data', price: 2 },
-      '5gb': { name: '5GB Data', price: 8 },
-      '10gb': { name: '10GB Data', price: 15 }
+      'bulk_units': {
+        name: 'Unités Vodacom en gros',
+        packages: {
+          '1000u': { name: '1000 unités', price: 9.55 },
+          '2000u': { name: '2000 unités', price: 19.1 },
+          '5000u': { name: '5000 unités', price: 47.75 },
+          '10000u': { name: '10000 unités', price: 95.5 },
+          '20000u': { name: '20000 unités', price: 191 },
+          '50000u': { name: '50000 unités', price: 477.5 }
+        }
+      },
+      'internet_sms': {
+        name: 'Internet et SMS',
+        packages: {
+          '1gb_48h': { name: '1GB 48h', price: 1 },
+          '2gb_48h': { name: '2GB 48h', price: 1.2 },
+          '18gb_1m': { name: '18GB 1mois', price: 10 },
+          '900sms_1m': { name: '900 SMS 1mois', price: 1 }
+        }
+      },
+      'call_minutes': {
+        name: 'Minutes d\'appel',
+        packages: {
+          '16min': { name: '16 minutes', price: 1 },
+          '45min_7j': { name: '45min 7j', price: 3 },
+          '42min_7j_all': { name: '42min 7j tout réseaux', price: 3 }
+        }
+      }
     },
     drc: {
-      '1gb': { name: '1GB Data', price: 3 },
-      '5gb': { name: '5GB Data', price: 12 },
-      '10gb': { name: '10GB Data', price: 20 }
+      'bulk_units': {
+        name: 'Unités Vodacom en gros',
+        packages: {
+          '1000u': { name: '1000 unités', price: 9.55 },
+          '2000u': { name: '2000 unités', price: 19.1 },
+          '5000u': { name: '5000 unités', price: 47.75 },
+          '10000u': { name: '10000 unités', price: 95.5 },
+          '20000u': { name: '20000 unités', price: 191 },
+          '50000u': { name: '50000 unités', price: 477.5 }
+        }
+      },
+      'internet_sms': {
+        name: 'Internet et SMS',
+        packages: {
+          '1gb_48h': { name: '1GB 48h', price: 1 },
+          '2gb_48h': { name: '2GB 48h', price: 1.2 },
+          '18gb_1m': { name: '18GB 1mois', price: 10 },
+          '900sms_1m': { name: '900 SMS 1mois', price: 1 }
+        }
+      },
+      'call_minutes': {
+        name: 'Minutes d\'appel',
+        packages: {
+          '16min': { name: '16 minutes', price: 1 },
+          '45min_7j': { name: '45min 7j', price: 3 },
+          '42min_7j_all': { name: '42min 7j tout réseaux', price: 3 }
+        }
+      }
     },
     burundi: {
-      '1gb': { name: '1GB Data', price: 2.5 },
-      '5gb': { name: '5GB Data', price: 10 },
-      '10gb': { name: '10GB Data', price: 18 }
+      'bulk_units': {
+        name: 'Unités Vodacom en gros',
+        packages: {
+          '1000u': { name: '1000 unités', price: 9.55 },
+          '2000u': { name: '2000 unités', price: 19.1 },
+          '5000u': { name: '5000 unités', price: 47.75 },
+          '10000u': { name: '10000 unités', price: 95.5 },
+          '20000u': { name: '20000 unités', price: 191 },
+          '50000u': { name: '50000 unités', price: 477.5 }
+        }
+      },
+      'internet_sms': {
+        name: 'Internet et SMS',
+        packages: {
+          '1gb_48h': { name: '1GB 48h', price: 1 },
+          '2gb_48h': { name: '2GB 48h', price: 1.2 },
+          '18gb_1m': { name: '18GB 1mois', price: 10 },
+          '900sms_1m': { name: '900 SMS 1mois', price: 1 }
+        }
+      },
+      'call_minutes': {
+        name: 'Minutes d\'appel',
+        packages: {
+          '16min': { name: '16 minutes', price: 1 },
+          '45min_7j': { name: '45min 7j', price: 3 },
+          '42min_7j_all': { name: '42min 7j tout réseaux', price: 3 }
+        }
+      }
     }
   },
   airtel: {
@@ -146,19 +221,94 @@ const pricing = {
   },
   orange: {
     rwanda: {
-      '1gb': { name: '1GB Data', price: 2 },
-      '5gb': { name: '5GB Data', price: 8 },
-      '10gb': { name: '10GB Data', price: 15 }
+      'bulk_units': {
+        name: 'Unités Orange en gros',
+        packages: {
+          '1000u': { name: '1000 unités', price: 9.55 },
+          '2000u': { name: '2000 unités', price: 19.1 },
+          '5000u': { name: '5000 unités', price: 47.75 },
+          '10000u': { name: '10000 unités', price: 95.5 },
+          '20000u': { name: '20000 unités', price: 191 },
+          '50000u': { name: '50000 unités', price: 477.5 }
+        }
+      },
+      'internet_sms': {
+        name: 'Internet et SMS',
+        packages: {
+          '1gb_48h': { name: '1GB 48h', price: 1 },
+          '2gb_48h': { name: '2GB 48h', price: 1.2 },
+          '18gb_1m': { name: '18GB 1mois', price: 10 },
+          '900sms_1m': { name: '900 SMS 1mois', price: 1 }
+        }
+      },
+      'call_minutes': {
+        name: 'Minutes d\'appel',
+        packages: {
+          '16min': { name: '16 minutes', price: 1 },
+          '45min_7j': { name: '45min 7j', price: 3 },
+          '42min_7j_all': { name: '42min 7j tout réseaux', price: 3 }
+        }
+      }
     },
     drc: {
-      '1gb': { name: '1GB Data', price: 3 },
-      '5gb': { name: '5GB Data', price: 12 },
-      '10gb': { name: '10GB Data', price: 20 }
+      'bulk_units': {
+        name: 'Unités Orange en gros',
+        packages: {
+          '1000u': { name: '1000 unités', price: 9.55 },
+          '2000u': { name: '2000 unités', price: 19.1 },
+          '5000u': { name: '5000 unités', price: 47.75 },
+          '10000u': { name: '10000 unités', price: 95.5 },
+          '20000u': { name: '20000 unités', price: 191 },
+          '50000u': { name: '50000 unités', price: 477.5 }
+        }
+      },
+      'internet_sms': {
+        name: 'Internet et SMS',
+        packages: {
+          '1gb_48h': { name: '1GB 48h', price: 1 },
+          '2gb_48h': { name: '2GB 48h', price: 1.2 },
+          '18gb_1m': { name: '18GB 1mois', price: 10 },
+          '900sms_1m': { name: '900 SMS 1mois', price: 1 }
+        }
+      },
+      'call_minutes': {
+        name: 'Minutes d\'appel',
+        packages: {
+          '16min': { name: '16 minutes', price: 1 },
+          '45min_7j': { name: '45min 7j', price: 3 },
+          '42min_7j_all': { name: '42min 7j tout réseaux', price: 3 }
+        }
+      }
     },
     burundi: {
-      '1gb': { name: '1GB Data', price: 2.5 },
-      '5gb': { name: '5GB Data', price: 10 },
-      '10gb': { name: '10GB Data', price: 18 }
+      'bulk_units': {
+        name: 'Unités Orange en gros',
+        packages: {
+          '1000u': { name: '1000 unités', price: 9.55 },
+          '2000u': { name: '2000 unités', price: 19.1 },
+          '5000u': { name: '5000 unités', price: 47.75 },
+          '10000u': { name: '10000 unités', price: 95.5 },
+          '20000u': { name: '20000 unités', price: 191 },
+          '50000u': { name: '50000 unités', price: 477.5 }
+        }
+      },
+      'internet_sms': {
+        name: 'Internet et SMS',
+        packages: {
+          '1gb_48h': { name: '1GB 48h', price: 1 },
+          '2gb_48h': { name: '2GB 48h', price: 1.2 },
+          '18gb_1m': { name: '18GB 1mois', price: 10 },
+          '900sms_1m': { name: '900 SMS 1mois', price: 1 }
+        }
+      },
+      'call_minutes': {
+        name: 'Minutes d\'appel',
+        packages: {
+          '16min': { name: '16 minutes', price: 1 },
+          '45min_7j': { name: '45min 7j', price: 3 },
+          '42min_7j_all': { name: '42min 7j tout réseaux', price: 3 }
+        }
+      }
     }
   },
   socode: {
@@ -329,27 +479,49 @@ client.on('message', async (message) => {
         
         if (regionIndex >= 0 && regionIndex < regions.length) {
           session.selectedRegion = regions[regionIndex];
-          session.step = 'choose_package';
           
-          // Get packages for selected service and region
-          const packages = pricing[session.selectedService][session.selectedRegion];
-          const packageKeys = Object.keys(packages);
-          
-          let packageList = '';
-          packageKeys.forEach((key, index) => {
-            const pkg = packages[key];
-            packageList += `${index + 1}. ${pkg.name} - $${pkg.price}\n`;
-          });
-          
-          const countryNames = {
-            'drc': session.language === 'en' ? 'DR Congo' : 'RD Congo',
-            'rwanda': 'Rwanda',
-            'burundi': 'Burundi'
-          };
-          
-          response = session.language === 'en'
-            ? `*Country: ${countryNames[regions[regionIndex]]}*\n*Service: ${session.selectedService.toUpperCase()}*\n\nAvailable packages:\n\n${packageList}\nReply with the number of your choice.`
-            : `*Pays : ${countryNames[regions[regionIndex]]}*\n*Service : ${session.selectedService.toUpperCase()}*\n\nForfaits disponibles :\n\n${packageList}\nRépondez avec le numéro de votre choix.`;
+          // Handle Vodacom and Orange differently (they have categories)
+          if (session.selectedService === 'vodacom' || session.selectedService === 'orange') {
+            session.step = 'choose_category';
+            
+            const categoryNames = {
+              'bulk_units': session.language === 'en' ? 'Bulk Units' : 'Unités en gros',
+              'internet_sms': session.language === 'en' ? 'Internet & SMS' : 'Internet et SMS',
+              'call_minutes': session.language === 'en' ? 'Call Minutes' : 'Minutes d\'appel'
+            };
+            
+            const countryNames = {
+              'drc': session.language === 'en' ? 'DR Congo' : 'RD Congo',
+              'rwanda': 'Rwanda',
+              'burundi': 'Burundi'
+            };
+            
+            response = session.language === 'en'
+              ? `*Country: ${countryNames[regions[regionIndex]]}*\n*Service: ${session.selectedService.toUpperCase()}*\n\nChoose a category:\n\n1. ${categoryNames.bulk_units}\n2. ${categoryNames.internet_sms}\n3. ${categoryNames.call_minutes}\n\nReply with the number of your choice.`
+              : `*Pays : ${countryNames[regions[regionIndex]]}*\n*Service : ${session.selectedService.toUpperCase()}*\n\nChoisissez une catégorie :\n\n1. ${categoryNames.bulk_units}\n2. ${categoryNames.internet_sms}\n3. ${categoryNames.call_minutes}\n\nRépondez avec le numéro de votre choix.`;
+          } else {
+            // Handle other services normally
+            session.step = 'choose_package';
+            
+            const packages = pricing[session.selectedService][session.selectedRegion];
+            const packageKeys = Object.keys(packages);
+            
+            let packageList = '';
+            packageKeys.forEach((key, index) => {
+              const pkg = packages[key];
+              packageList += `${index + 1}. ${pkg.name} - $${pkg.price}\n`;
+            });
+            
+            const countryNames = {
+              'drc': session.language === 'en' ? 'DR Congo' : 'RD Congo',
+              'rwanda': 'Rwanda',
+              'burundi': 'Burundi'
+            };
+            
+            response = session.language === 'en'
+              ? `*Country: ${countryNames[regions[regionIndex]]}*\n*Service: ${session.selectedService.toUpperCase()}*\n\nAvailable packages:\n\n${packageList}\nReply with the number of your choice.`
+              : `*Pays : ${countryNames[regions[regionIndex]]}*\n*Service : ${session.selectedService.toUpperCase()}*\n\nForfaits disponibles :\n\n${packageList}\nRépondez avec le numéro de votre choix.`;
+          }
         } else {
           response = session.language === 'en' 
             ? 'Please choose a valid country (1-3)' 
@@ -357,9 +529,44 @@ client.on('message', async (message) => {
         }
         break;
         
+      case 'choose_category':
+        const categories = ['bulk_units', 'internet_sms', 'call_minutes'];
+        const categoryIndex = parseInt(text) - 1;
+        
+        if (categoryIndex >= 0 && categoryIndex < categories.length) {
+          session.selectedCategory = categories[categoryIndex];
+          session.step = 'choose_package';
+          
+          const categoryData = pricing[session.selectedService][session.selectedRegion][categories[categoryIndex]];
+          const packageKeys = Object.keys(categoryData.packages);
+          
+          let packageList = '';
+          packageKeys.forEach((key, index) => {
+            const pkg = categoryData.packages[key];
+            packageList += `${index + 1}. ${pkg.name} - $${pkg.price}\n`;
+          });
+          
+          response = session.language === 'en'
+            ? `*Category: ${categoryData.name}*\n\nAvailable packages:\n\n${packageList}\nReply with the number of your choice.`
+            : `*Catégorie : ${categoryData.name}*\n\nForfaits disponibles :\n\n${packageList}\nRépondez avec le numéro de votre choix.`;
+        } else {
+          response = session.language === 'en' 
+            ? 'Please choose a valid category (1-3)' 
+            : 'Veuillez choisir une catégorie valide (1-3)';
+        }
+        break;
+        
       case 'choose_package':
-        const availablePackages = pricing[session.selectedService][session.selectedRegion];
-        const packageKeys = Object.keys(availablePackages);
+        let availablePackages, packageKeys;
+        
+        // Handle Vodacom and Orange with categories
+        if (session.selectedService === 'vodacom' || session.selectedService === 'orange') {
+          availablePackages = pricing[session.selectedService][session.selectedRegion][session.selectedCategory].packages;
+        } else {
+          availablePackages = pricing[session.selectedService][session.selectedRegion];
+        }
+        
+        packageKeys = Object.keys(availablePackages);
         const packageIndex = parseInt(text) - 1;
         
         if (packageIndex >= 0 && packageIndex < packageKeys.length) {
@@ -380,7 +587,7 @@ client.on('message', async (message) => {
             example = '12345678901';
           } else if (isTV) {
             fieldName = session.language === 'en' ? 'decoder' : 'décodeur';
-            example = '1234567890';
+            example = '24510033256001';
           } else {
             fieldName = session.language === 'en' ? 'phone' : 'téléphone';
             example = '250781234567';
