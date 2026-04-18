@@ -93,6 +93,7 @@ const pricing = {
       'super': { name: 'StarTimes Super', price: 28 }
     }
   },
+  dstv: {
     rwanda: {
       'compact': { name: 'DStv Compact', price: 15 },
       'compact_plus': { name: 'DStv Compact Plus', price: 25 },
