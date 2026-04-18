@@ -608,7 +608,7 @@ client.on('message', async (message) => {
           session.decoderNumber = text;
           session.step = 'confirm_payment';
           
-          const orderId = 'AF' + Date.now().toString().slice(-6);
+          const orderId = 'AF-' + Date.now().toString() + '-' + Math.random().toString(36).substring(2, 15) + '-' + Math.random().toString(36).substring(2, 15);
           session.orderId = orderId;
           
           response = session.language === 'en'
