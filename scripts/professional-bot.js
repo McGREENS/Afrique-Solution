@@ -608,11 +608,15 @@ client.on('message', async (message) => {
           session.decoderNumber = text;
           session.step = 'confirm_payment';
           
-          // Generate exactly 36-character UUID for PawaPay
-          const timestamp = Date.now().toString();
-          const random1 = Math.random().toString(36).substring(2, 8);
-          const random2 = Math.random().toString(36).substring(2, 8);
-          const orderId = `AF${timestamp}${random1}${random2}`.substring(0, 36);
+          // Generate exactly 36-character UUID for PawaPay (RFC 4122 format)
+          function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+              const r = Math.random() * 16 | 0;
+              const v = c == 'x' ? r : (r & 0x3 | 0x8);
+              return v.toString(16);
+            });
+          }
+          const orderId = generateUUID();
           session.orderId = orderId;
           
           response = session.language === 'en'
