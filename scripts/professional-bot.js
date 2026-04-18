@@ -159,6 +159,32 @@ const pricing = {
       '5gb': { name: '5GB Data', price: 10 },
       '10gb': { name: '10GB Data', price: 18 }
     }
+  },
+  socode: {
+    rwanda: {
+      '5000fc': { name: '5,000 FC', price: 5 },
+      '10000fc': { name: '10,000 FC', price: 10 },
+      '15000fc': { name: '15,000 FC', price: 15 },
+      '20000fc': { name: '20,000 FC', price: 20 },
+      '50000fc': { name: '50,000 FC', price: 50 },
+      '100000fc': { name: '100,000 FC', price: 100 }
+    },
+    drc: {
+      '5000fc': { name: '5,000 FC', price: 5 },
+      '10000fc': { name: '10,000 FC', price: 10 },
+      '15000fc': { name: '15,000 FC', price: 15 },
+      '20000fc': { name: '20,000 FC', price: 20 },
+      '50000fc': { name: '50,000 FC', price: 50 },
+      '100000fc': { name: '100,000 FC', price: 100 }
+    },
+    burundi: {
+      '5000fc': { name: '5,000 FC', price: 5 },
+      '10000fc': { name: '10,000 FC', price: 10 },
+      '15000fc': { name: '15,000 FC', price: 15 },
+      '20000fc': { name: '20,000 FC', price: 20 },
+      '50000fc': { name: '50,000 FC', price: 50 },
+      '100000fc': { name: '100,000 FC', price: 100 }
+    }
   }
 };
 
@@ -285,17 +311,10 @@ client.on('message', async (message) => {
             'socode': 'SOCODE Electricity'
           };
           
-          // Handle SOCODE electricity service differently
-          if (services[serviceIndex] === 'socode') {
-            response = session.language === 'en' 
-              ? `*Service Selected: SOCODE Electricity*\n\nSorry, SOCODE electricity service is currently under maintenance. Please try again later or choose another service.\n\nType "menu" to go back to main menu.`
-              : `*Service choisi : Courant SOCODE*\n\nDésolé, le service d'électricité SOCODE est actuellement en maintenance. Veuillez réessayer plus tard ou choisir un autre service.\n\nTapez "menu" pour revenir au menu principal.`;
-            session.step = 'choose_language';
-          } else {
-            response = session.language === 'en' 
-              ? `*Service Selected: ${serviceNames[services[serviceIndex]]}*\n\nChoose your country:\n\n1. DR Congo\n2. Rwanda\n3. Burundi\n\nReply with the number of your choice.`
-              : `*Service choisi : ${serviceNames[services[serviceIndex]]}*\n\nChoisissez votre pays :\n\n1. RD Congo\n2. Rwanda\n3. Burundi\n\nRépondez avec le numéro de votre choix.`;
-          }
+          // Handle all services normally
+          response = session.language === 'en' 
+            ? `*Service Selected: ${serviceNames[services[serviceIndex]]}*\n\nChoose your country:\n\n1. DR Congo\n2. Rwanda\n3. Burundi\n\nReply with the number of your choice.`
+            : `*Service choisi : ${serviceNames[services[serviceIndex]]}*\n\nChoisissez votre pays :\n\n1. RD Congo\n2. Rwanda\n3. Burundi\n\nRépondez avec le numéro de votre choix.`;
         } else {
           response = session.language === 'en' 
             ? 'Please choose a valid service (1-7)' 
@@ -351,9 +370,20 @@ client.on('message', async (message) => {
           session.selectedPrice = selectedPackage.price;
           session.step = 'enter_details';
           
-          const isTV = session.selectedService === 'canal' || session.selectedService === 'dstv';
-          const fieldName = isTV ? (session.language === 'en' ? 'decoder' : 'décodeur') : (session.language === 'en' ? 'phone' : 'téléphone');
-          const example = isTV ? '1234567890' : '250781234567';
+          const isTV = session.selectedService === 'canal' || session.selectedService === 'dstv' || session.selectedService === 'startimes';
+          const isElectricity = session.selectedService === 'socode';
+          let fieldName, example;
+          
+          if (isElectricity) {
+            fieldName = session.language === 'en' ? 'meter' : 'compteur';
+            example = '12345678901';
+          } else if (isTV) {
+            fieldName = session.language === 'en' ? 'decoder' : 'décodeur';
+            example = '1234567890';
+          } else {
+            fieldName = session.language === 'en' ? 'phone' : 'téléphone';
+            example = '250781234567';
+          }
           
           response = session.language === 'en'
             ? `*Package Selected: ${selectedPackage.name} - $${selectedPackage.price}*\n\nPlease enter your ${fieldName} number:\n\nExample: ${example}`
