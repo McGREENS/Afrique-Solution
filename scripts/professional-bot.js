@@ -73,7 +73,26 @@ const pricing = {
       'acces_plus_dstv': { name: 'ACCES+ avec DSTV', price: 24 }
     }
   },
-  dstv: {
+  startimes: {
+    rwanda: {
+      'nova': { name: 'StarTimes Nova', price: 8 },
+      'basic': { name: 'StarTimes Basic', price: 12 },
+      'smart': { name: 'StarTimes Smart', price: 18 },
+      'super': { name: 'StarTimes Super', price: 25 }
+    },
+    drc: {
+      'nova': { name: 'StarTimes Nova', price: 10 },
+      'basic': { name: 'StarTimes Basic', price: 15 },
+      'smart': { name: 'StarTimes Smart', price: 22 },
+      'super': { name: 'StarTimes Super', price: 30 }
+    },
+    burundi: {
+      'nova': { name: 'StarTimes Nova', price: 9 },
+      'basic': { name: 'StarTimes Basic', price: 13 },
+      'smart': { name: 'StarTimes Smart', price: 20 },
+      'super': { name: 'StarTimes Super', price: 28 }
+    }
+  },
     rwanda: {
       'compact': { name: 'DStv Compact', price: 15 },
       'compact_plus': { name: 'DStv Compact Plus', price: 25 },
@@ -258,15 +277,25 @@ client.on('message', async (message) => {
           
           const serviceNames = {
             'canal': 'Canal+',
+            'startimes': 'StarTimes',
             'dstv': 'DSTV', 
             'vodacom': 'Vodacom',
             'airtel': 'Airtel',
-            'orange': 'Orange'
+            'orange': 'Orange',
+            'socode': 'SOCODE Electricity'
           };
           
-          response = session.language === 'en' 
-            ? `*Service Selected: ${serviceNames[services[serviceIndex]]}*\n\nChoose your country:\n\n1. DR Congo\n2. Rwanda\n3. Burundi\n\nReply with the number of your choice.`
-            : `*Service choisi : ${serviceNames[services[serviceIndex]]}*\n\nChoisissez votre pays :\n\n1. RD Congo\n2. Rwanda\n3. Burundi\n\nRépondez avec le numéro de votre choix.`;
+          // Handle SOCODE electricity service differently
+          if (services[serviceIndex] === 'socode') {
+            response = session.language === 'en' 
+              ? `*Service Selected: SOCODE Electricity*\n\nSorry, SOCODE electricity service is currently under maintenance. Please try again later or choose another service.\n\nType "menu" to go back to main menu.`
+              : `*Service choisi : Courant SOCODE*\n\nDésolé, le service d'électricité SOCODE est actuellement en maintenance. Veuillez réessayer plus tard ou choisir un autre service.\n\nTapez "menu" pour revenir au menu principal.`;
+            session.step = 'choose_language';
+          } else {
+            response = session.language === 'en' 
+              ? `*Service Selected: ${serviceNames[services[serviceIndex]]}*\n\nChoose your country:\n\n1. DR Congo\n2. Rwanda\n3. Burundi\n\nReply with the number of your choice.`
+              : `*Service choisi : ${serviceNames[services[serviceIndex]]}*\n\nChoisissez votre pays :\n\n1. RD Congo\n2. Rwanda\n3. Burundi\n\nRépondez avec le numéro de votre choix.`;
+          }
         } else {
           response = session.language === 'en' 
             ? 'Please choose a valid service (1-7)' 
