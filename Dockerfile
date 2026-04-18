@@ -79,4 +79,4 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 EXPOSE 3000
 
 # Start the WhatsApp bot directly
-CMD ["node", "scripts/complete-bot-v1.js"]
+CMD ["node", "scripts/final-bot.js"]
