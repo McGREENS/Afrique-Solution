@@ -608,7 +608,11 @@ client.on('message', async (message) => {
           session.decoderNumber = text;
           session.step = 'confirm_payment';
           
-          const orderId = 'AF-' + Date.now().toString() + '-' + Math.random().toString(36).substring(2, 15) + '-' + Math.random().toString(36).substring(2, 15);
+          // Generate exactly 36-character UUID for PawaPay
+          const timestamp = Date.now().toString();
+          const random1 = Math.random().toString(36).substring(2, 8);
+          const random2 = Math.random().toString(36).substring(2, 8);
+          const orderId = `AF${timestamp}${random1}${random2}`.substring(0, 36);
           session.orderId = orderId;
           
           response = session.language === 'en'
