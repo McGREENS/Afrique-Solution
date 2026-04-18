@@ -743,18 +743,37 @@ async function initiatePawaPay(amount, phone, orderId, country) {
     console.log('OrderID:', orderId, 'Length:', orderId.length);
     console.log('Country:', country);
     
-    const correspondentMap = {
-      'rwanda': 'MTN_MOMO_RWA',
-      'drc': 'AIRTEL_MONEY_COD',
-      'burundi': 'AIRTEL_MONEY_BDI'
-    };
+    // Smart correspondent selection based on phone number
+    function getCorrespondent(country, phone) {
+      if (country === 'rwanda') {
+        return 'MTN_MOMO_RWA';
+      } else if (country === 'burundi') {
+        return 'AIRTEL_MONEY_BDI';
+      } else if (country === 'drc') {
+        // Auto-detect DRC correspondent based on phone prefix
+        const phoneStr = phone.replace('+', '');
+        if (phoneStr.startsWith('243970') || phoneStr.startsWith('243971') || 
+            phoneStr.startsWith('243972') || phoneStr.startsWith('243973')) {
+          return 'VODACOM_MPESA_COD'; // Vodacom M-Pesa
+        } else if (phoneStr.startsWith('243974') || phoneStr.startsWith('243975') || 
+                   phoneStr.startsWith('243976') || phoneStr.startsWith('243977')) {
+          return 'AIRTEL_MONEY_COD'; // Airtel Money
+        } else {
+          return 'VODACOM_MPESA_COD'; // Default to Vodacom
+        }
+      }
+      return 'MTN_MOMO_RWA'; // Default fallback
+    }
+    
+    const correspondent = getCorrespondent(country, phone);
+    console.log('Selected correspondent:', correspondent, 'for phone:', phone);
     
     // Fix all potential issues
     const requestBody = {
       depositId: orderId,
       amount: parseFloat(amount).toFixed(2), // Ensure proper decimal format
       currency: 'USD',
-      correspondent: correspondentMap[country] || 'MTN_MOMO_RWA',
+      correspondent: correspondent,
       payer: {
         type: 'MSISDN',
         address: {
