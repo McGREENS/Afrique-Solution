@@ -734,14 +734,38 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// PawaPay integration
+// PawaPay integration - COMPLETE FIX
 async function initiatePawaPay(amount, phone, orderId, country) {
   try {
+    console.log('🔥 PawaPay Request Details:');
+    console.log('Amount:', amount);
+    console.log('Phone:', phone);
+    console.log('OrderID:', orderId, 'Length:', orderId.length);
+    console.log('Country:', country);
+    
     const correspondentMap = {
       'rwanda': 'MTN_MOMO_RWA',
       'drc': 'AIRTEL_MONEY_COD',
       'burundi': 'AIRTEL_MONEY_BDI'
     };
+    
+    // Fix all potential issues
+    const requestBody = {
+      depositId: orderId,
+      amount: parseFloat(amount).toFixed(2), // Ensure proper decimal format
+      currency: 'USD',
+      correspondent: correspondentMap[country] || 'MTN_MOMO_RWA',
+      payer: {
+        type: 'MSISDN',
+        address: {
+          value: phone.startsWith('+') ? phone : `+${phone}` // Ensure + prefix
+        }
+      },
+      customerTimestamp: new Date().toISOString(),
+      statementDescription: 'Afrique Solution' // Exactly 16 chars - under 22 limit
+    };
+    
+    console.log('🔥 PawaPay Request Body:', JSON.stringify(requestBody, null, 2));
 
     const response = await fetch('https://api.sandbox.pawapay.io/deposits', {
       method: 'POST',
@@ -749,26 +773,14 @@ async function initiatePawaPay(amount, phone, orderId, country) {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer eyJraWQiOiIxIiwiYWxnIjoiRVMyNTYifQ.eyJ0dCI6IkFBVCIsInN1YiI6IjE5NTEzIiwibWF2IjoiMSIsImV4cCI6MjA5MjEyMTg5OCwiaWF0IjoxNzc2NTAyNjk4LCJwbSI6IkRBRixQQUYiLCJqdGkiOiIyYmJiMzViNi1lNTU4LTQ1OGMtYjY4Zi1iYzgzYTRkZGRiZDQifQ.bCOMt2-H0MiHb6ssu9v5CiqbadbaCtS7-6Yuy_6VikddXXEZXBw7wkofzuA4tcAFhffThqEnvzwE5NocHFOgdg'
       },
-      body: JSON.stringify({
-        depositId: orderId,
-        amount: amount.toString(),
-        currency: 'USD',
-        correspondent: correspondentMap[country] || 'MTN_MOMO_RWA',
-        payer: {
-          type: 'MSISDN',
-          address: {
-            value: phone
-          }
-        },
-        customerTimestamp: new Date().toISOString(),
-        statementDescription: `Afrique Solution - ${orderId}`
-      })
+      body: JSON.stringify(requestBody)
     });
     
     const result = await response.json();
-    console.log('🔥 PawaPay API Response:', result);
+    console.log('🔥 PawaPay API Response Status:', response.status);
+    console.log('🔥 PawaPay API Response:', JSON.stringify(result, null, 2));
     
-    if (response.ok) {
+    if (response.ok && (result.status === 'ACCEPTED' || result.status === 'SUBMITTED')) {
       return { status: 'ACCEPTED', ...result };
     } else {
       console.error('❌ PawaPay API Error:', result);
