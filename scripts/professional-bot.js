@@ -606,17 +606,85 @@ client.on('message', async (message) => {
       case 'enter_details':
         if (text.length >= 6) {
           session.decoderNumber = text;
-          session.step = 'payment_complete';
+          session.step = 'confirm_payment';
           
           const orderId = 'AF' + Date.now().toString().slice(-6);
+          session.orderId = orderId;
           
           response = session.language === 'en'
-            ? `*ORDER CONFIRMATION*\n\nService: ${session.selectedService.toUpperCase()}\nCountry: ${session.selectedRegion.toUpperCase()}\nPackage: ${session.selectedPackageName}\nAmount: $${session.selectedPrice}\nNumber: ${session.decoderNumber}\nOrder ID: ${orderId}\n\n*PAYMENT INSTRUCTIONS*\n\nSend $${session.selectedPrice} via Mobile Money to:\n+250796552804\n\nInclude reference: ${orderId}\n\nYour service will be activated within 30 minutes after payment confirmation.\n\nNeed help? Reply "menu" to restart.`
-            : `*CONFIRMATION DE COMMANDE*\n\nService : ${session.selectedService.toUpperCase()}\nPays : ${session.selectedRegion.toUpperCase()}\nForfait : ${session.selectedPackageName}\nMontant : $${session.selectedPrice}\nNuméro : ${session.decoderNumber}\nID Commande : ${orderId}\n\n*INSTRUCTIONS DE PAIEMENT*\n\nEnvoyez $${session.selectedPrice} via Mobile Money à :\n+250796552804\n\nIncluez la référence : ${orderId}\n\nVotre service sera activé dans les 30 minutes après confirmation du paiement.\n\nBesoin d'aide ? Répondez "menu" pour recommencer.`;
+            ? `*ORDER CONFIRMATION*\n\nService: ${session.selectedService.toUpperCase()}\nCountry: ${session.selectedRegion.toUpperCase()}\nPackage: ${session.selectedPackageName}\nAmount: $${session.selectedPrice}\nNumber: ${session.decoderNumber}\nOrder ID: ${orderId}\n\n*PAYMENT OPTIONS*\n\n1. Pay with Mobile Money (Automatic)\n2. Manual Payment Instructions\n\nReply with 1 or 2`
+            : `*CONFIRMATION DE COMMANDE*\n\nService : ${session.selectedService.toUpperCase()}\nPays : ${session.selectedRegion.toUpperCase()}\nForfait : ${session.selectedPackageName}\nMontant : $${session.selectedPrice}\nNuméro : ${session.decoderNumber}\nID Commande : ${orderId}\n\n*OPTIONS DE PAIEMENT*\n\n1. Payer avec Mobile Money (Automatique)\n2. Instructions de paiement manuel\n\nRépondez avec 1 ou 2`;
         } else {
           response = session.language === 'en' 
             ? 'Please enter a valid number (at least 6 digits)' 
             : 'Veuillez entrer un numéro valide (au moins 6 chiffres)';
+        }
+        break;
+        
+      case 'confirm_payment':
+        if (text === '1') {
+          // Automatic PawaPay payment
+          session.step = 'enter_phone';
+          response = session.language === 'en'
+            ? `*AUTOMATIC PAYMENT*\n\nPlease enter your Mobile Money phone number:\n\nExample: 250781234567\n\nMake sure you have $${session.selectedPrice} in your account.`
+            : `*PAIEMENT AUTOMATIQUE*\n\nVeuillez entrer votre numéro Mobile Money :\n\nExemple : 250781234567\n\nAssurez-vous d'avoir $${session.selectedPrice} dans votre compte.`;
+        } else if (text === '2') {
+          // Manual payment instructions
+          session.step = 'payment_complete';
+          response = session.language === 'en'
+            ? `*MANUAL PAYMENT INSTRUCTIONS*\n\nSend $${session.selectedPrice} via Mobile Money to:\n+250796552804\n\nInclude reference: ${session.orderId}\n\nYour service will be activated within 30 minutes after payment confirmation.\n\nNeed help? Reply "menu" to restart.`
+            : `*INSTRUCTIONS DE PAIEMENT MANUEL*\n\nEnvoyez $${session.selectedPrice} via Mobile Money à :\n+250796552804\n\nIncluez la référence : ${session.orderId}\n\nVotre service sera activé dans les 30 minutes après confirmation du paiement.\n\nBesoin d'aide ? Répondez "menu" pour recommencer.`;
+        } else {
+          response = session.language === 'en' 
+            ? 'Please choose 1 for automatic payment or 2 for manual payment' 
+            : 'Veuillez choisir 1 pour paiement automatique ou 2 pour paiement manuel';
+        }
+        break;
+        
+      case 'enter_phone':
+        if (text.length >= 10 && text.match(/^[0-9+]+$/)) {
+          session.paymentPhone = text;
+          session.step = 'processing_payment';
+          
+          // Show processing message
+          response = session.language === 'en'
+            ? `*PROCESSING PAYMENT*\n\nInitiating payment request...\nAmount: $${session.selectedPrice}\nPhone: ${session.paymentPhone}\n\nPlease wait...`
+            : `*TRAITEMENT DU PAIEMENT*\n\nInitialisation de la demande de paiement...\nMontant : $${session.selectedPrice}\nTéléphone : ${session.paymentPhone}\n\nVeuillez patienter...`;
+          
+          // Send processing message first
+          await message.reply(response);
+          
+          // Initiate PawaPay payment
+          try {
+            const paymentResult = await initiatePawaPay(
+              session.selectedPrice,
+              session.paymentPhone,
+              session.orderId,
+              session.selectedRegion
+            );
+            
+            if (paymentResult && paymentResult.status === 'ACCEPTED') {
+              response = session.language === 'en'
+                ? `*PAYMENT REQUEST SENT*\n\n✅ Payment request sent to ${session.paymentPhone}\n\nPlease check your phone and approve the payment of $${session.selectedPrice}\n\nOrder ID: ${session.orderId}\n\nYour service will be activated automatically after payment confirmation.\n\nNeed help? Reply "menu" to restart.`
+                : `*DEMANDE DE PAIEMENT ENVOYÉE*\n\n✅ Demande de paiement envoyée à ${session.paymentPhone}\n\nVeuillez vérifier votre téléphone et approuver le paiement de $${session.selectedPrice}\n\nID Commande : ${session.orderId}\n\nVotre service sera activé automatiquement après confirmation du paiement.\n\nBesoin d'aide ? Répondez "menu" pour recommencer.`;
+              session.step = 'payment_complete';
+            } else {
+              response = session.language === 'en'
+                ? `*PAYMENT FAILED*\n\n❌ Unable to process automatic payment.\n\nPlease try manual payment:\nSend $${session.selectedPrice} to +250796552804\nReference: ${session.orderId}\n\nNeed help? Reply "menu" to restart.`
+                : `*PAIEMENT ÉCHOUÉ*\n\n❌ Impossible de traiter le paiement automatique.\n\nVeuillez essayer le paiement manuel :\nEnvoyez $${session.selectedPrice} à +250796552804\nRéférence : ${session.orderId}\n\nBesoin d'aide ? Répondez "menu" pour recommencer.`;
+              session.step = 'payment_complete';
+            }
+          } catch (error) {
+            console.error('Payment processing error:', error);
+            response = session.language === 'en'
+              ? `*PAYMENT ERROR*\n\n❌ Payment system temporarily unavailable.\n\nPlease use manual payment:\nSend $${session.selectedPrice} to +250796552804\nReference: ${session.orderId}\n\nNeed help? Reply "menu" to restart.`
+              : `*ERREUR DE PAIEMENT*\n\n❌ Système de paiement temporairement indisponible.\n\nVeuillez utiliser le paiement manuel :\nEnvoyez $${session.selectedPrice} à +250796552804\nRéférence : ${session.orderId}\n\nBesoin d'aide ? Répondez "menu" pour recommencer.`;
+            session.step = 'payment_complete';
+          }
+        } else {
+          response = session.language === 'en' 
+            ? 'Please enter a valid phone number (numbers only, at least 10 digits)' 
+            : 'Veuillez entrer un numéro de téléphone valide (chiffres uniquement, au moins 10 chiffres)';
         }
         break;
         
@@ -671,7 +739,7 @@ async function initiatePawaPay(amount, phone, orderId, country) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJraWQiOiIxIiwiYWxnIjoiRVMyNTYifQ.eyJ0dCI6IkFBVCIsInN1YiI6IjE4NTc2IiwibWF2IjoiMSIsImV4cCI6MjA5MTUzNjE5MCwiaWF0IjoxNzc1OTE2OTkwLCJwbSI6IkRBRixQQUYiLCJqdGkiOiJmY2FmYjc0ZS1hMzZkLTQ2NmItYTQ5My00YTA2MjFjMjdhYjYifQ.-sc3k3rhPUaFlgOV71DtD7X_E9QZAKz5HByLZbchzZTWMIk79uECuFLcMwtnfVAabXNAwqUD5cYx0AhAFtefYQ'
+        'Authorization': 'Bearer eyJraWQiOiIxIiwiYWxnIjoiRVMyNTYifQ.eyJ0dCI6IkFBVCIsInN1YiI6IjE5NTEzIiwibWF2IjoiMSIsImV4cCI6MjA5MjEyMTg5OCwiaWF0IjoxNzc2NTAyNjk4LCJwbSI6IkRBRixQQUYiLCJqdGkiOiIyYmJiMzViNi1lNTU4LTQ1OGMtYjY4Zi1iYzgzYTRkZGRiZDQifQ.bCOMt2-H0MiHb6ssu9v5CiqbadbaCtS7-6Yuy_6VikddXXEZXBw7wkofzuA4tcAFhffThqEnvzwE5NocHFOgdg'
       },
       body: JSON.stringify({
         depositId: orderId,
@@ -690,11 +758,17 @@ async function initiatePawaPay(amount, phone, orderId, country) {
     });
     
     const result = await response.json();
-    console.log('PawaPay response:', result);
-    return result;
+    console.log('🔥 PawaPay API Response:', result);
+    
+    if (response.ok) {
+      return { status: 'ACCEPTED', ...result };
+    } else {
+      console.error('❌ PawaPay API Error:', result);
+      return { status: 'FAILED', error: result };
+    }
   } catch (error) {
-    console.error('PawaPay error:', error);
-    return null;
+    console.error('❌ PawaPay Network Error:', error);
+    return { status: 'FAILED', error: error.message };
   }
 }
 
