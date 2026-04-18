@@ -238,18 +238,18 @@ client.on('message', async (message) => {
         if (text === '1' || text.toLowerCase().includes('english') || text.toLowerCase() === 'en') {
           session.language = 'en';
           session.step = 'choose_service';
-          response = `*Welcome to Afrique Solution*\n\nChoose a service:\n\n1. Canal+ (Satellite TV)\n2. DSTV (Satellite TV)\n3. Vodacom (Mobile Data)\n4. Airtel (Mobile Data)\n5. Orange (Mobile Data)\n\nReply with the number of your choice.`;
+          response = `*Welcome to Afrique Solution*\n\nChoose a service:\n\n1. CANAL+\n2. StarTimes\n3. DSTV\n4. VODACOM (units & packages)\n5. Airtel (units & packages)\n6. Orange (units & packages)\n7. SOCODE Electricity\n\nReply with the number of your choice.`;
         } else if (text === '2' || text.toLowerCase().includes('français') || text.toLowerCase().includes('francais') || text.toLowerCase() === 'fr') {
           session.language = 'fr';
           session.step = 'choose_service';
-          response = `*Bienvenue chez Afrique Solution*\n\nChoisissez un service :\n\n1. Canal+ (TV Satellite)\n2. DSTV (TV Satellite)\n3. Vodacom (Data Mobile)\n4. Airtel (Data Mobile)\n5. Orange (Data Mobile)\n\nRépondez avec le numéro de votre choix.`;
+          response = `*Bienvenue chez Afrique Solution*\n\nChoisissez un service :\n\n1. CANAL+\n2. StarTimes\n3. DSTV\n4. VODACOM (unités et forfaits)\n5. Airtel (unités et forfaits)\n6. Orange (unités et forfaits)\n7. Courant SOCODE\n\nRépondez avec le numéro de votre choix.`;
         } else {
           response = `*Welcome to Afrique Solution*\n*Bienvenue chez Afrique Solution*\n\nPlease choose your language:\nChoisissez votre langue :\n\n1. English\n2. Français\n\nReply with 1 or 2`;
         }
         break;
         
       case 'choose_service':
-        const services = ['canal', 'dstv', 'vodacom', 'airtel', 'orange'];
+        const services = ['canal', 'startimes', 'dstv', 'vodacom', 'airtel', 'orange', 'socode'];
         const serviceIndex = parseInt(text) - 1;
         
         if (serviceIndex >= 0 && serviceIndex < services.length) {
@@ -269,8 +269,8 @@ client.on('message', async (message) => {
             : `*Service choisi : ${serviceNames[services[serviceIndex]]}*\n\nChoisissez votre pays :\n\n1. RD Congo\n2. Rwanda\n3. Burundi\n\nRépondez avec le numéro de votre choix.`;
         } else {
           response = session.language === 'en' 
-            ? 'Please choose a valid service (1-5)' 
-            : 'Veuillez choisir un service valide (1-5)';
+            ? 'Please choose a valid service (1-7)' 
+            : 'Veuillez choisir un service valide (1-7)';
         }
         break;
         
