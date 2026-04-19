@@ -812,27 +812,58 @@ async function initiatePawaPay(amount, phone, orderId, country) {
     console.log('OrderID:', orderId, 'Length:', orderId.length);
     console.log('Country:', country);
     
-    // Smart correspondent selection based on phone number
+    // Smart correspondent selection based on phone number and country
     function getCorrespondent(country, phone) {
+      const phoneStr = phone.replace(/[^0-9]/g, ''); // Remove all non-numeric
+      
       if (country === 'rwanda') {
-        // Use correct Rwanda correspondent
-        return 'MTN_MOMO_RWA';
-      } else if (country === 'burundi') {
-        return 'AIRTEL_MONEY_BDI';
-      } else if (country === 'drc') {
-        // Auto-detect DRC correspondent based on phone prefix
-        const phoneStr = phone.replace('+', '');
-        if (phoneStr.startsWith('243970') || phoneStr.startsWith('243971') || 
-            phoneStr.startsWith('243972') || phoneStr.startsWith('243973')) {
-          return 'VODACOM_MPESA_COD'; // Vodacom M-Pesa
-        } else if (phoneStr.startsWith('243974') || phoneStr.startsWith('243975') || 
-                   phoneStr.startsWith('243976') || phoneStr.startsWith('243977')) {
-          return 'AIRTEL_MONEY_COD'; // Airtel Money
+        // Rwanda phone prefixes
+        if (phoneStr.startsWith('25078') || phoneStr.startsWith('25079')) {
+          return 'MTN_MOMO_RWA'; // MTN Mobile Money
+        } else if (phoneStr.startsWith('25072') || phoneStr.startsWith('25073')) {
+          return 'AIRTEL_MONEY_RWA'; // Airtel Money (if available)
         } else {
-          return 'VODACOM_MPESA_COD'; // Default to Vodacom
+          return 'MTN_MOMO_RWA'; // Default to MTN for Rwanda
+        }
+      } else if (country === 'burundi') {
+        // Burundi phone prefixes
+        if (phoneStr.startsWith('25775') || phoneStr.startsWith('25776') || 
+            phoneStr.startsWith('25777') || phoneStr.startsWith('25778')) {
+          return 'AIRTEL_MONEY_BDI'; // Airtel Money Burundi
+        } else if (phoneStr.startsWith('25771') || phoneStr.startsWith('25772')) {
+          return 'ECONET_BDI'; // Econet (if available)
+        } else {
+          return 'AIRTEL_MONEY_BDI'; // Default to Airtel for Burundi
+        }
+      } else if (country === 'drc') {
+        // DRC phone prefixes - more comprehensive
+        if (phoneStr.startsWith('243970') || phoneStr.startsWith('243971') || 
+            phoneStr.startsWith('243972') || phoneStr.startsWith('243973') ||
+            phoneStr.startsWith('243975') || phoneStr.startsWith('243976') ||
+            phoneStr.startsWith('243977') || phoneStr.startsWith('243978')) {
+          return 'VODACOM_MPESA_COD'; // Vodacom M-Pesa
+        } else if (phoneStr.startsWith('243974') || phoneStr.startsWith('243979') ||
+                   phoneStr.startsWith('243990') || phoneStr.startsWith('243991') ||
+                   phoneStr.startsWith('243992') || phoneStr.startsWith('243993') ||
+                   phoneStr.startsWith('243994') || phoneStr.startsWith('243995') ||
+                   phoneStr.startsWith('243996') || phoneStr.startsWith('243997') ||
+                   phoneStr.startsWith('243998') || phoneStr.startsWith('243999')) {
+          return 'AIRTEL_MONEY_COD'; // Airtel Money
+        } else if (phoneStr.startsWith('243980') || phoneStr.startsWith('243981') ||
+                   phoneStr.startsWith('243982') || phoneStr.startsWith('243983') ||
+                   phoneStr.startsWith('243984') || phoneStr.startsWith('243985')) {
+          return 'ORANGE_MONEY_COD'; // Orange Money (if available)
+        } else {
+          return 'VODACOM_MPESA_COD'; // Default to Vodacom for DRC
         }
       }
-      return 'MTN_MOMO_RWA'; // Default fallback
+      
+      // Fallback based on country
+      if (country === 'rwanda') return 'MTN_MOMO_RWA';
+      if (country === 'burundi') return 'AIRTEL_MONEY_BDI';
+      if (country === 'drc') return 'VODACOM_MPESA_COD';
+      
+      return 'MTN_MOMO_RWA'; // Ultimate fallback
     }
     
     const correspondent = getCorrespondent(country, phone);
