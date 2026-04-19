@@ -803,40 +803,58 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// PawaPay integration - COMPLETE FIX
+// PawaPay integration - PRODUCTION READY WITH PHONE-BASED DETECTION
 async function initiatePawaPay(amount, phone, orderId, country) {
   try {
     console.log('🔥 PawaPay Request Details:');
     console.log('Amount:', amount);
     console.log('Phone:', phone);
     console.log('OrderID:', orderId, 'Length:', orderId.length);
-    console.log('Country:', country);
+    console.log('Service Country:', country);
     
-    // Smart correspondent selection based on phone number and country
-    function getCorrespondent(country, phone) {
-      const phoneStr = phone.replace(/[^0-9]/g, ''); // Remove all non-numeric
+    // Detect actual country from phone number (NOT from service selection)
+    function detectPhoneCountry(phone) {
+      const phoneStr = phone.replace(/[^0-9]/g, '');
       
-      if (country === 'rwanda') {
+      if (phoneStr.startsWith('250')) {
+        return 'rwanda';
+      } else if (phoneStr.startsWith('243')) {
+        return 'drc';
+      } else if (phoneStr.startsWith('257')) {
+        return 'burundi';
+      }
+      
+      return null; // Unknown country
+    }
+    
+    // Smart correspondent selection based on PHONE NUMBER (not service country)
+    function getCorrespondent(phone) {
+      const phoneStr = phone.replace(/[^0-9]/g, '');
+      const phoneCountry = detectPhoneCountry(phone);
+      
+      console.log('📱 Detected phone country:', phoneCountry);
+      
+      if (phoneCountry === 'rwanda') {
         // Rwanda phone prefixes
         if (phoneStr.startsWith('25078') || phoneStr.startsWith('25079')) {
           return 'MTN_MOMO_RWA'; // MTN Mobile Money
         } else if (phoneStr.startsWith('25072') || phoneStr.startsWith('25073')) {
-          return 'AIRTEL_MONEY_RWA'; // Airtel Money (if available)
+          return 'AIRTEL_MONEY_RWA'; // Airtel Money
         } else {
           return 'MTN_MOMO_RWA'; // Default to MTN for Rwanda
         }
-      } else if (country === 'burundi') {
+      } else if (phoneCountry === 'burundi') {
         // Burundi phone prefixes
         if (phoneStr.startsWith('25775') || phoneStr.startsWith('25776') || 
             phoneStr.startsWith('25777') || phoneStr.startsWith('25778')) {
           return 'AIRTEL_MONEY_BDI'; // Airtel Money Burundi
         } else if (phoneStr.startsWith('25771') || phoneStr.startsWith('25772')) {
-          return 'ECONET_BDI'; // Econet (if available)
+          return 'ECONET_BDI'; // Econet
         } else {
           return 'AIRTEL_MONEY_BDI'; // Default to Airtel for Burundi
         }
-      } else if (country === 'drc') {
-        // DRC phone prefixes - more comprehensive
+      } else if (phoneCountry === 'drc') {
+        // DRC phone prefixes - comprehensive mapping
         if (phoneStr.startsWith('243970') || phoneStr.startsWith('243971') || 
             phoneStr.startsWith('243972') || phoneStr.startsWith('243973') ||
             phoneStr.startsWith('243975') || phoneStr.startsWith('243976') ||
@@ -852,37 +870,43 @@ async function initiatePawaPay(amount, phone, orderId, country) {
         } else if (phoneStr.startsWith('243980') || phoneStr.startsWith('243981') ||
                    phoneStr.startsWith('243982') || phoneStr.startsWith('243983') ||
                    phoneStr.startsWith('243984') || phoneStr.startsWith('243985')) {
-          return 'ORANGE_MONEY_COD'; // Orange Money (if available)
+          return 'ORANGE_MONEY_COD'; // Orange Money
         } else {
           return 'VODACOM_MPESA_COD'; // Default to Vodacom for DRC
         }
       }
       
-      // Fallback based on country
-      if (country === 'rwanda') return 'MTN_MOMO_RWA';
-      if (country === 'burundi') return 'AIRTEL_MONEY_BDI';
-      if (country === 'drc') return 'VODACOM_MPESA_COD';
-      
-      return 'MTN_MOMO_RWA'; // Ultimate fallback
+      return null; // Unknown correspondent
     }
     
-    const correspondent = getCorrespondent(country, phone);
-    console.log('Selected correspondent:', correspondent, 'for phone:', phone);
+    const phoneCountry = detectPhoneCountry(phone);
+    const correspondent = getCorrespondent(phone);
     
-    // Fix all potential issues
+    if (!phoneCountry || !correspondent) {
+      console.error('❌ Unable to detect country or correspondent from phone:', phone);
+      return { 
+        status: 'FAILED', 
+        error: 'Invalid phone number. Please use a valid Rwanda (250), DRC (243), or Burundi (257) number.' 
+      };
+    }
+    
+    console.log('📱 Phone country detected:', phoneCountry);
+    console.log('💳 Selected correspondent:', correspondent, 'for phone:', phone);
+    
+    // Build request body
     const requestBody = {
       depositId: orderId,
-      amount: parseFloat(amount).toFixed(2), // Ensure proper decimal format
+      amount: parseFloat(amount).toFixed(2),
       currency: 'USD',
       correspondent: correspondent,
       payer: {
         type: 'MSISDN',
         address: {
-          value: phone.replace(/[^0-9]/g, '') // Remove all non-numeric characters
+          value: phone.replace(/[^0-9]/g, '')
         }
       },
       customerTimestamp: new Date().toISOString(),
-      statementDescription: 'Afrique Solution' // Exactly 16 chars - under 22 limit
+      statementDescription: 'Afrique Solution'
     };
     
     console.log('🔥 PawaPay Request Body:', JSON.stringify(requestBody, null, 2));
