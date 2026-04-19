@@ -887,11 +887,11 @@ async function initiatePawaPay(amount, phone, orderId, country) {
     
     console.log('🔥 PawaPay Request Body:', JSON.stringify(requestBody, null, 2));
 
-    const response = await fetch('https://api.sandbox.pawapay.io/deposits', {
+    const response = await fetch('https://api.pawapay.io/deposits', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJraWQiOiIxIiwiYWxnIjoiRVMyNTYifQ.eyJ0dCI6IkFBVCIsInN1YiI6IjE5NTEzIiwibWF2IjoiMSIsImV4cCI6MjA5MjEyMTg5OCwiaWF0IjoxNzc2NTAyNjk4LCJwbSI6IkRBRixQQUYiLCJqdGkiOiIyYmJiMzViNi1lNTU4LTQ1OGMtYjY4Zi1iYzgzYTRkZGRiZDQifQ.bCOMt2-H0MiHb6ssu9v5CiqbadbaCtS7-6Yuy_6VikddXXEZXBw7wkofzuA4tcAFhffThqEnvzwE5NocHFOgdg'
+        'Authorization': 'Bearer eyJraWQiOiIxIiwiYWxnIjoiRVMyNTYifQ.eyJ0dCI6IkFBVCIsInN1YiI6IjI3NDgiLCJtYXYiOiIxIiwiZXhwIjoyMDkyMjM1MTgxLCJpYXQiOjE3NzY2MTU5ODEsInBtIjoiREFGLFBBRiIsImp0aSI6IjFjZjAwZDZmLWEwNGUtNDg5Ny04ODU0LTg0ZjcyNWM3ZjZkMCJ9.zHM0XXJ4guqPCp8phmGxvEX2MbP5t7ryz60Ak94BrQIeqfhheU3mziBGUHkRpeS3JI3gpNmVaObHpkXwIutNpw'
       },
       body: JSON.stringify(requestBody)
     });
