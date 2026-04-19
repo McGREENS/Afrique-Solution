@@ -31,15 +31,34 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { qrString, status } = body
     
-    console.log('QR API POST called with:', { qrString: qrString?.substring(0, 50) + '...', status })
+    console.log('QR API POST called with:', { 
+      hasQrString: !!qrString, 
+      qrLength: qrString?.length || 0,
+      status 
+    })
     
-    qrData = {
-      qrString: qrString || '',
-      status: status || 'disconnected',
-      lastUpdate: new Date().toISOString()
+    // Smart update logic - preserve QR string unless explicitly provided
+    if (qrString) {
+      // New QR code provided
+      qrData = {
+        qrString: qrString,
+        status: status || 'qr_ready',
+        lastUpdate: new Date().toISOString()
+      }
+    } else if (status) {
+      // Status update only - preserve existing QR
+      qrData = {
+        qrString: status === 'connected' || status === 'authenticated' ? '' : qrData.qrString,
+        status: status,
+        lastUpdate: new Date().toISOString()
+      }
     }
     
-    console.log('QR data updated:', { status: qrData.status, hasQR: !!qrData.qrString })
+    console.log('QR data updated:', { 
+      status: qrData.status, 
+      hasQR: !!qrData.qrString, 
+      qrLength: qrData.qrString.length 
+    })
     
     return NextResponse.json({ success: true })
   } catch (error) {
