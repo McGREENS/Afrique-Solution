@@ -777,7 +777,7 @@ async function initiatePawaPay(amount, phone, orderId, country) {
       payer: {
         type: 'MSISDN',
         address: {
-          value: phone.startsWith('+') ? phone : `+${phone}` // Ensure + prefix
+          value: phone.replace(/[^0-9]/g, '') // Remove all non-numeric characters
         }
       },
       customerTimestamp: new Date().toISOString(),
