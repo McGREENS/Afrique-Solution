@@ -33,11 +33,43 @@ const client = new Client({
       '--disable-renderer-backgrounding',
       '--disable-extensions',
       '--disable-default-apps',
-      '--disable-sync'
+      '--disable-sync',
+      '--disable-blink-features=AutomationControlled'
     ],
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable'
+  },
+  // Improve connection stability
+  webVersionCache: {
+    type: 'remote',
+    remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
   }
 });
+
+// Connection state tracking
+let isConnected = false;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_DELAY = 30000; // 30 seconds
+
+// Auto-reconnection function
+async function attemptReconnection() {
+  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    console.log('❌ Max reconnection attempts reached. Manual intervention required.');
+    return;
+  }
+  
+  reconnectAttempts++;
+  console.log(`🔄 Attempting reconnection ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}...`);
+  
+  setTimeout(async () => {
+    try {
+      await client.initialize();
+    } catch (error) {
+      console.error('❌ Reconnection failed:', error);
+      attemptReconnection();
+    }
+  }, RECONNECT_DELAY);
+}
 
 // Store user sessions in memory
 const userSessions = new Map();
@@ -384,11 +416,26 @@ client.on('ready', async () => {
   console.log('✅ Your business number (+250792593786) is now connected');
   console.log('📞 Customers can message your business number directly');
   console.log('🤖 Professional bot is ready with real pricing!');
-  console.log('💰 Services: Canal+, DSTV, Vodacom, Airtel, Orange');
+  console.log('💰 Services: Canal+, StarTimes, DSTV, Vodacom, Airtel, Orange, SOCODE');
   console.log('🌍 Countries: Rwanda, DR Congo, Burundi');
   console.log('');
   console.log('⏳ Bot is now live 24/7 on Railway!');
   console.log('');
+  
+  // Reset reconnection counter on successful connection
+  isConnected = true;
+  reconnectAttempts = 0;
+  
+  // Update website status
+  try {
+    await fetch('https://afriquesolution.site/api/whatsapp/qr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qrString: '', status: 'connected' })
+    });
+  } catch (error) {
+    console.log('Website API not available');
+  }
 });
 
 client.on('auth_failure', (msg) => {
@@ -396,14 +443,36 @@ client.on('auth_failure', (msg) => {
   console.log('💡 Session may have expired. Re-authenticate locally and redeploy.');
 });
 
-client.on('disconnected', (reason) => {
+client.on('disconnected', async (reason) => {
   console.log('📱 WhatsApp disconnected:', reason);
-  console.log('🔄 Attempting to reconnect...');
+  isConnected = false;
+  
+  // Update website status
+  try {
+    await fetch('https://afriquesolution.site/api/whatsapp/qr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qrString: '', status: 'disconnected' })
+    });
+  } catch (error) {
+    console.log('Website API not available');
+  }
+  
+  // Attempt automatic reconnection
+  console.log('🔄 Attempting automatic reconnection...');
+  attemptReconnection();
 });
 
-// Handle incoming messages
+// Handle incoming messages with enhanced error handling
 client.on('message', async (message) => {
   if (message.fromMe) return;
+  
+  // Check connection status
+  if (!isConnected) {
+    console.log('⚠️ Message received but WhatsApp not connected. Attempting reconnection...');
+    attemptReconnection();
+    return;
+  }
   
   try {
     const contact = await message.getContact();
