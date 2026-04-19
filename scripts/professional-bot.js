@@ -815,8 +815,8 @@ async function initiatePawaPay(amount, phone, orderId, country) {
     // Smart correspondent selection based on phone number
     function getCorrespondent(country, phone) {
       if (country === 'rwanda') {
-        // Temporarily use DRC correspondent for testing
-        return 'VODACOM_MPESA_COD';
+        // Use correct Rwanda correspondent
+        return 'MTN_MOMO_RWA';
       } else if (country === 'burundi') {
         return 'AIRTEL_MONEY_BDI';
       } else if (country === 'drc') {
