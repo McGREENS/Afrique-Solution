@@ -3,6 +3,9 @@
 import Image from "next/image";
 import { Tv2, Satellite, Signal, Wifi, Globe, MessageCircle, LayoutList, CreditCard, CheckCircle, ArrowUpRight } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
+import { LanguageProvider } from "@/context/LanguageContext";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "+243000000000";
 const WA_LINK = `https://wa.me/${WA_NUMBER.replace(/\D/g, "")}`;
@@ -62,7 +65,9 @@ export default function Home() {
   const t = (obj: { fr: string; en: string }) => obj[lang];
 
   return (
-    <main className="bg-[#f3f3f3] px-4 pt-28 pb-5 text-[#11111a] md:px-8">
+    <LanguageProvider>
+      <Navbar />
+      <main className="bg-[#f3f3f3] px-4 pt-28 pb-5 text-[#11111a] md:px-8">
       <section className="mx-auto max-w-[1440px] px-6 pb-10 md:px-12 md:pb-12">
 
         {/* ── HERO ── */}
@@ -242,5 +247,7 @@ export default function Home() {
 
       </section>
     </main>
+    <Footer />
+    </LanguageProvider>
   );
 }

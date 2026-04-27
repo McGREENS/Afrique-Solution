@@ -6,6 +6,14 @@ export async function POST(request) {
     
     console.log('🔔 PawaPay Deposits Callback:', JSON.stringify(body, null, 2));
     
+    // LOG FOR PAWAPAY SUPPORT - CALLBACK DETAILS
+    console.log('\n========== PAWAPAY CALLBACK LOG ==========');
+    console.log('DEPOSIT ID:', body.depositId);
+    console.log('DATE/TIME:', new Date().toISOString());
+    console.log('STATUS:', body.status);
+    console.log('CALLBACK PAYLOAD:', JSON.stringify(body, null, 2));
+    console.log('==========================================\n');
+    
     const {
       depositId,
       status,

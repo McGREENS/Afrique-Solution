@@ -939,6 +939,18 @@ async function initiatePawaPay(amount, phone, orderId, country) {
     console.log('🔥 PawaPay API Response Status:', response.status);
     console.log('🔥 PawaPay API Response:', JSON.stringify(result, null, 2));
     
+    // LOG FOR PAWAPAY SUPPORT - COMPLETE DETAILS
+    console.log('\n========== PAWAPAY SUPPORT LOG ==========');
+    console.log('DEPOSIT ID:', orderId);
+    console.log('DATE/TIME:', new Date().toISOString());
+    console.log('COUNTRY:', currencyInfo.country);
+    console.log('CORRESPONDENT:', correspondent);
+    console.log('MASKED MSISDN:', phone.replace(/[^0-9]/g, '').slice(0, 6) + '******');
+    console.log('IMMEDIATE API RESPONSE:', JSON.stringify(result, null, 2));
+    console.log('HTTP STATUS:', response.status);
+    console.log('REQUEST STATUS:', result.status || 'UNKNOWN');
+    console.log('=========================================\n');
+    
     if (response.ok && (result.status === 'ACCEPTED' || result.status === 'SUBMITTED')) {
       return { status: 'ACCEPTED', ...result };
     } else {
