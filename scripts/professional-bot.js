@@ -4,6 +4,13 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
+// Prevent multiple instances
+if (global.whatsappClientInitialized) {
+  console.log('⚠️  WhatsApp client already initialized, skipping...');
+  return;
+}
+global.whatsappClientInitialized = true;
+
 console.log('🚀 Starting Railway WhatsApp Bot...');
 console.log('📱 Environment:', process.env.NODE_ENV || 'production');
 console.log('🔗 WhatsApp Number:', process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+250792593786');
