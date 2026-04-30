@@ -47,5 +47,30 @@ export async function initSchema() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS whatsapp_messages (
+      id TEXT PRIMARY KEY,
+      phone TEXT NOT NULL,
+      message TEXT NOT NULL,
+      direction TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS website_visits (
+      id TEXT PRIMARY KEY,
+      page TEXT NOT NULL,
+      ip TEXT,
+      user_agent TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS manual_payments (
+      id TEXT PRIMARY KEY,
+      service TEXT NOT NULL,
+      package_name TEXT NOT NULL,
+      amount REAL NOT NULL,
+      phone TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 }

@@ -4,45 +4,43 @@ import { useEffect, useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { 
   Plus,
-  ExternalLink,
-  DollarSign,
-  Trash2
+  Trash2,
+  Edit,
+  Users as UsersIcon
 } from "lucide-react";
 
-interface Payment {
+interface User {
   id: string;
-  service: string;
-  package_name: string;
-  amount: number;
-  phone: string;
+  email: string;
+  name: string;
   created_at: string;
 }
 
-export default function PaymentsPage() {
-  const [payments, setPayments] = useState<Payment[]>([]);
+export default function UsersPage() {
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
-    service: "",
-    package_name: "",
-    amount: "",
-    phone: ""
+    email: "",
+    name: "",
+    password: ""
   });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchPayments();
+    fetchUsers();
   }, []);
 
-  const fetchPayments = async () => {
+  const fetchUsers = async () => {
     try {
-      const res = await fetch("/api/admin/payments");
+      const res = await fetch("/api/admin/users");
       if (res.ok) {
         const data = await res.json();
-        setPayments(data.payments);
+        setUsers(data.users);
       }
     } catch (error) {
-      console.error("Failed to fetch payments:", error);
+      console.error("Failed to fetch users:", error);
     } finally {
       setLoading(false);
     }
@@ -53,41 +51,60 @@ export default function PaymentsPage() {
     setSubmitting(true);
 
     try {
-      const res = await fetch("/api/admin/payments", {
-        method: "POST",
+      const url = editingUser 
+        ? `/api/admin/users?id=${editingUser.id}` 
+        : "/api/admin/users";
+      
+      const res = await fetch(url, {
+        method: editingUser ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
       });
 
       if (res.ok) {
-        setFormData({ service: "", package_name: "", amount: "", phone: "" });
+        setFormData({ email: "", name: "", password: "" });
         setShowForm(false);
-        fetchPayments();
+        setEditingUser(null);
+        fetchUsers();
       }
     } catch (error) {
-      console.error("Failed to add payment:", error);
+      console.error("Failed to save user:", error);
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    setFormData({
+      email: user.email,
+      name: user.name,
+      password: ""
+    });
+    setShowForm(true);
+  };
+
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this payment?")) return;
+    if (!confirm("Are you sure you want to delete this admin user?")) return;
 
     try {
-      const res = await fetch(`/api/admin/payments?id=${id}`, {
+      const res = await fetch(`/api/admin/users?id=${id}`, {
         method: "DELETE"
       });
 
       if (res.ok) {
-        fetchPayments();
+        fetchUsers();
       }
     } catch (error) {
-      console.error("Failed to delete payment:", error);
+      console.error("Failed to delete user:", error);
     }
   };
 
-  const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingUser(null);
+    setFormData({ email: "", name: "", password: "" });
+  };
 
   if (loading) {
     return (
@@ -105,7 +122,7 @@ export default function PaymentsPage() {
         .header {
           display: flex;
           justify-content: space-between;
-          align-items: flex-start;
+          align-items: center;
           margin-bottom: 24px;
           flex-wrap: wrap;
           gap: 12px;
@@ -113,15 +130,8 @@ export default function PaymentsPage() {
 
         @media (min-width: 640px) {
           .header {
-            align-items: center;
-            margin-bottom: 28px;
-            gap: 16px;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .header {
             margin-bottom: 32px;
+            gap: 16px;
           }
         }
 
@@ -147,24 +157,9 @@ export default function PaymentsPage() {
           }
         }
 
-        .header-buttons {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          width: 100%;
-        }
-
-        @media (min-width: 640px) {
-          .header-buttons {
-            gap: 12px;
-            width: auto;
-          }
-        }
-
         .btn {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
           gap: 6px;
           padding: 10px 16px;
           border: 2px solid #11111a;
@@ -174,17 +169,16 @@ export default function PaymentsPage() {
           cursor: pointer;
           transition: all 0.2s;
           box-shadow: 0 3px 0 #11111a;
-          text-decoration: none;
-          white-space: nowrap;
-          flex: 1;
+          width: 100%;
+          justify-content: center;
         }
 
         @media (min-width: 640px) {
           .btn {
+            gap: 8px;
             padding: 12px 20px;
             font-size: 15px;
-            gap: 8px;
-            flex: 0;
+            width: auto;
           }
         }
 
@@ -208,39 +202,20 @@ export default function PaymentsPage() {
           color: #11111a;
         }
 
-        .stats-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-
-        @media (min-width: 640px) {
-          .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 28px;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .stats-grid {
-            margin-bottom: 32px;
-          }
-        }
-
-        .stat-card {
+        .stats-card {
           background: white;
           border-radius: 16px;
           border: 1px solid #11111a;
           box-shadow: 0 3px 0 #11111a;
           padding: 20px;
+          margin-bottom: 24px;
         }
 
         @media (min-width: 640px) {
-          .stat-card {
+          .stats-card {
             border-radius: 20px;
             padding: 24px;
+            margin-bottom: 32px;
           }
         }
 
@@ -248,7 +223,7 @@ export default function PaymentsPage() {
           font-size: 28px;
           font-weight: 600;
           margin-bottom: 4px;
-          line-height: 1;
+          color: #11111a;
         }
 
         @media (min-width: 640px) {
@@ -279,21 +254,15 @@ export default function PaymentsPage() {
           align-items: center;
           justify-content: center;
           z-index: 1000;
-          padding: 16px;
-        }
-
-        @media (min-width: 640px) {
-          .form-modal {
-            padding: 20px;
-          }
+          padding: 20px;
         }
 
         .form-container {
           background: white;
           border-radius: 20px;
           border: 2px solid #11111a;
-          box-shadow: 0 8px 0 #11111a;
-          padding: 24px;
+          box-shadow: 0 6px 0 #11111a;
+          padding: 20px;
           max-width: 500px;
           width: 100%;
           max-height: 90vh;
@@ -303,6 +272,7 @@ export default function PaymentsPage() {
         @media (min-width: 640px) {
           .form-container {
             border-radius: 24px;
+            box-shadow: 0 8px 0 #11111a;
             padding: 32px;
           }
         }
@@ -346,22 +316,24 @@ export default function PaymentsPage() {
           }
         }
 
-        .form-input, .form-select {
+        .form-input {
           width: 100%;
           padding: 10px 14px;
           border: 2px solid #11111a;
-          border-radius: 12px;
-          font-size: 15px;
+          border-radius: 10px;
+          font-size: 14px;
           outline: none;
         }
 
         @media (min-width: 640px) {
-          .form-input, .form-select {
+          .form-input {
             padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 15px;
           }
         }
 
-        .form-input:focus, .form-select:focus {
+        .form-input:focus {
           border-color: #b4f75f;
           box-shadow: 0 0 0 3px rgba(180, 247, 95, 0.2);
         }
@@ -379,23 +351,25 @@ export default function PaymentsPage() {
           }
         }
 
-        .payments-table {
+        .table-wrapper {
           background: white;
-          border-radius: 20px;
+          border-radius: 16px;
           border: 1px solid #11111a;
           box-shadow: 0 4px 0 #11111a;
-          overflow: hidden;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
         }
 
         @media (min-width: 640px) {
-          .payments-table {
-            border-radius: 24px;
+          .table-wrapper {
+            border-radius: 20px;
           }
         }
 
-        .table-wrapper {
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
+        @media (min-width: 1024px) {
+          .table-wrapper {
+            border-radius: 24px;
+          }
         }
 
         .table {
@@ -410,7 +384,7 @@ export default function PaymentsPage() {
 
         .table th {
           text-align: left;
-          padding: 12px 16px;
+          padding: 12px 14px;
           font-size: 13px;
           font-weight: 600;
           color: #11111a;
@@ -420,21 +394,33 @@ export default function PaymentsPage() {
 
         @media (min-width: 640px) {
           .table th {
-            padding: 16px 20px;
+            padding: 14px 18px;
             font-size: 14px;
           }
         }
 
+        @media (min-width: 1024px) {
+          .table th {
+            padding: 16px 20px;
+          }
+        }
+
         .table td {
-          padding: 12px 16px;
+          padding: 12px 14px;
           font-size: 13px;
           border-bottom: 1px solid #e5e5e5;
         }
 
         @media (min-width: 640px) {
           .table td {
-            padding: 16px 20px;
+            padding: 14px 18px;
             font-size: 14px;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .table td {
+            padding: 16px 20px;
           }
         }
 
@@ -446,23 +432,43 @@ export default function PaymentsPage() {
           background: #f9f9f9;
         }
 
-        .delete-btn {
+        .action-btn {
           background: none;
           border: none;
-          color: #ef4444;
           cursor: pointer;
-          padding: 4px;
+          padding: 6px;
           display: inline-flex;
           align-items: center;
+          margin-right: 6px;
+          min-width: 32px;
+          min-height: 32px;
+          justify-content: center;
         }
 
-        .delete-btn:hover {
-          color: #dc2626;
+        @media (min-width: 640px) {
+          .action-btn {
+            padding: 4px;
+            margin-right: 8px;
+            min-width: auto;
+            min-height: auto;
+          }
+        }
+
+        .action-btn:hover {
+          opacity: 0.7;
+        }
+
+        .edit-btn {
+          color: #11111a;
+        }
+
+        .delete-btn {
+          color: #ef4444;
         }
 
         .empty-state {
           text-align: center;
-          padding: 40px 20px;
+          padding: 40px 16px;
           color: #343438;
         }
 
@@ -471,154 +477,139 @@ export default function PaymentsPage() {
             padding: 60px 20px;
           }
         }
+
+        .empty-state-title {
+          font-size: 16px;
+          margin-bottom: 8px;
+        }
+
+        @media (min-width: 640px) {
+          .empty-state-title {
+            font-size: 18px;
+          }
+        }
+
+        .empty-state-text {
+          font-size: 13px;
+        }
+
+        @media (min-width: 640px) {
+          .empty-state-text {
+            font-size: 14px;
+          }
+        }
       `}</style>
 
       <div className="header">
-        <h2 className="section-header">Payment Tracking</h2>
-        <div className="header-buttons">
-          <a
-            href="https://dashboard.pawapay.io/#/login"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-secondary"
-          >
-            <ExternalLink size={18} />
-            See New Payments
-          </a>
-          <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-            <Plus size={18} />
-            Add Payment
-          </button>
-        </div>
+        <h2 className="section-header">Admin Users</h2>
+        <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+          <Plus size={18} />
+          Add Admin
+        </button>
       </div>
 
       {/* Stats */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: "#11111a" }}>{payments.length}</div>
-          <div className="stat-label">Total Payments</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: "#10b981" }}>${totalRevenue.toFixed(2)}</div>
-          <div className="stat-label">Total Revenue</div>
-        </div>
+      <div className="stats-card">
+        <div className="stat-value">{users.length}</div>
+        <div className="stat-label">Total Admin Users</div>
       </div>
 
-      {/* Payments Table */}
-      <div className="payments-table">
-        {payments.length === 0 ? (
+      {/* Users Table */}
+      <div className="table-wrapper">
+        {users.length === 0 ? (
           <div className="empty-state">
-            <DollarSign size={48} color="#11111a" style={{ opacity: 0.3, margin: "0 auto 16px" }} />
-            <p style={{ fontSize: "18px", marginBottom: "8px" }}>No payments recorded yet</p>
-            <p style={{ fontSize: "14px" }}>
-              Click "Add Payment" to manually record a payment
+            <UsersIcon size={48} color="#11111a" style={{ opacity: 0.3, margin: "0 auto 16px" }} />
+            <p className="empty-state-title">No admin users yet</p>
+            <p className="empty-state-text">
+              Click "Add Admin" to create your first admin user
             </p>
           </div>
         ) : (
-          <div className="table-wrapper">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Service</th>
-                  <th>Package</th>
-                  <th>Amount</th>
-                  <th>Phone Number</th>
-                  <th>Date</th>
-                  <th>Actions</th>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td style={{ fontWeight: 500 }}>{user.name}</td>
+                  <td style={{ color: "#343438" }}>{user.email}</td>
+                  <td style={{ color: "#343438" }}>
+                    {new Date(user.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </td>
+                  <td>
+                    <button
+                      className="action-btn edit-btn"
+                      onClick={() => handleEdit(user)}
+                      title="Edit user"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      className="action-btn delete-btn"
+                      onClick={() => handleDelete(user.id)}
+                      title="Delete user"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {payments.map((payment) => (
-                  <tr key={payment.id}>
-                    <td style={{ fontWeight: 500 }}>{payment.service}</td>
-                    <td style={{ color: "#343438" }}>{payment.package_name}</td>
-                    <td style={{ fontWeight: 600, color: "#10b981" }}>${payment.amount}</td>
-                    <td style={{ fontFamily: "monospace" }}>{payment.phone}</td>
-                    <td style={{ color: "#343438" }}>
-                      {new Date(payment.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </td>
-                    <td>
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDelete(payment.id)}
-                        title="Delete payment"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
-      {/* Add Payment Form Modal */}
+      {/* Add/Edit User Form Modal */}
       {showForm && (
-        <div className="form-modal" onClick={() => setShowForm(false)}>
+        <div className="form-modal" onClick={handleCancel}>
           <div className="form-container" onClick={(e) => e.stopPropagation()}>
-            <h3 className="form-title">Add Payment</h3>
+            <h3 className="form-title">{editingUser ? "Edit Admin" : "Add Admin"}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label className="form-label">Service</label>
-                <select
-                  className="form-select"
-                  value={formData.service}
-                  onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-                  required
-                >
-                  <option value="">Select service...</option>
-                  <option value="Canal+">Canal+</option>
-                  <option value="StarTimes">StarTimes</option>
-                  <option value="DSTV">DSTV</option>
-                  <option value="Vodacom">Vodacom</option>
-                  <option value="Airtel">Airtel</option>
-                  <option value="Orange">Orange</option>
-                  <option value="SOCODE">SOCODE Electricity</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Package Name</label>
+                <label className="form-label">Name</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g., ACCES, 1GB Data, etc."
-                  value={formData.package_name}
-                  onChange={(e) => setFormData({ ...formData, package_name: e.target.value })}
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Amount (USD)</label>
+                <label className="form-label">Email</label>
                 <input
-                  type="number"
-                  step="0.01"
+                  type="email"
                   className="form-input"
-                  placeholder="0.00"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  placeholder="admin@example.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Phone Number</label>
+                <label className="form-label">
+                  Password {editingUser && "(leave blank to keep current)"}
+                </label>
                 <input
-                  type="tel"
+                  type="password"
                   className="form-input"
-                  placeholder="250781234567"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  required
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required={!editingUser}
                 />
               </div>
 
@@ -626,7 +617,7 @@ export default function PaymentsPage() {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => setShowForm(false)}
+                  onClick={handleCancel}
                   style={{ flex: 1 }}
                 >
                   Cancel
@@ -637,7 +628,7 @@ export default function PaymentsPage() {
                   disabled={submitting}
                   style={{ flex: 1 }}
                 >
-                  {submitting ? "Adding..." : "Add Payment"}
+                  {submitting ? "Saving..." : editingUser ? "Update" : "Add Admin"}
                 </button>
               </div>
             </form>

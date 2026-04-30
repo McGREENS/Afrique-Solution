@@ -8,11 +8,13 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
       const response = await fetch("/api/admin/auth", {
@@ -27,9 +29,11 @@ export default function AdminLogin() {
         router.push("/admin/dashboard");
       } else {
         setError(data.error || "Invalid credentials");
+        setLoading(false);
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
+      setLoading(false);
     }
   };
 
@@ -109,23 +113,6 @@ export default function AdminLogin() {
           font-size: 20px;
         }
         
-        .forgot-password {
-          text-align: right;
-          margin-top: -16px;
-          margin-bottom: 24px;
-        }
-        
-        .forgot-password a {
-          font-size: 14px;
-          color: #11111a;
-          text-decoration: none;
-          font-weight: 500;
-        }
-        
-        .forgot-password a:hover {
-          color: #b4f75f;
-        }
-        
         .login-button {
           width: 100%;
           padding: 16px;
@@ -148,6 +135,27 @@ export default function AdminLogin() {
         .login-button:active {
           transform: translateY(1px);
           box-shadow: 0 2px 0 #11111a;
+        }
+        
+        .login-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+        
+        .spinner {
+          display: inline-block;
+          width: 16px;
+          height: 16px;
+          border: 2px solid #11111a;
+          border-top-color: transparent;
+          border-radius: 50%;
+          animation: spin 0.6s linear infinite;
+          margin-right: 8px;
+        }
+        
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
         
         .error-message {
@@ -203,12 +211,15 @@ export default function AdminLogin() {
             </div>
           </div>
           
-          <div className="forgot-password">
-            <a href="#">Forgot password?</a>
-          </div>
-          
-          <button type="submit" className="login-button">
-            Sign In
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? (
+              <>
+                <span className="spinner"></span>
+                Signing in...
+              </>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
       </div>

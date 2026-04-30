@@ -7,9 +7,13 @@ import {
   LayoutDashboard,
   CreditCard,
   QrCode,
+  Users,
   LogOut,
   Menu,
   X,
+  ChevronLeft,
+  ChevronRight,
+  Settings,
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -20,6 +24,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -49,9 +54,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       href: "/admin/payments",
     },
     {
+      icon: Users,
+      label: "Admin Users",
+      href: "/admin/users",
+    },
+    {
       icon: QrCode,
       label: "WhatsApp QR",
       href: "/admin/whatsapp-qr",
+    },
+    {
+      icon: Settings,
+      label: "Settings",
+      href: "/admin/settings",
     },
   ];
 
@@ -73,9 +88,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           background: #11111a;
           z-index: 50;
           transform: translateX(-100%);
-          transition: transform 0.3s ease;
+          transition: all 0.3s ease;
           display: flex;
           flex-direction: column;
+        }
+
+        .admin-sidebar.collapsed {
+          width: 80px;
         }
 
         .admin-sidebar.open {
@@ -86,6 +105,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           padding: 32px 24px;
           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           flex-shrink: 0;
+          position: relative;
         }
 
         .admin-sidebar-logo h2 {
@@ -93,12 +113,49 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           font-weight: 600;
           color: white;
           margin: 0;
+          transition: opacity 0.3s;
+        }
+
+        .admin-sidebar.collapsed .admin-sidebar-logo h2 {
+          opacity: 0;
+          font-size: 0;
         }
 
         .admin-sidebar-logo p {
           font-size: 14px;
           color: rgba(255, 255, 255, 0.6);
           margin: 8px 0 0 0;
+          transition: opacity 0.3s;
+        }
+
+        .admin-sidebar.collapsed .admin-sidebar-logo p {
+          opacity: 0;
+          font-size: 0;
+        }
+
+        .collapse-toggle {
+          position: absolute;
+          top: 32px;
+          right: -16px;
+          width: 32px;
+          height: 32px;
+          background: #b4f75f;
+          border: 2px solid #11111a;
+          border-radius: 50%;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          z-index: 10;
+        }
+
+        .collapse-toggle:hover {
+          transform: scale(1.1);
+        }
+
+        .collapse-toggle:active {
+          transform: scale(0.95);
         }
 
         .admin-sidebar-nav {
@@ -132,6 +189,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           text-decoration: none;
           transition: all 0.2s;
           color: rgba(255, 255, 255, 0.8);
+          white-space: nowrap;
+          overflow: hidden;
+        }
+
+        .admin-sidebar.collapsed .admin-menu-item {
+          justify-content: center;
+          padding: 14px;
+        }
+
+        .admin-menu-item span {
+          transition: opacity 0.3s;
+        }
+
+        .admin-sidebar.collapsed .admin-menu-item span {
+          opacity: 0;
+          width: 0;
         }
 
         .admin-menu-item:hover {
@@ -165,6 +238,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           color: rgba(255, 255, 255, 0.8);
           cursor: pointer;
           transition: all 0.2s;
+          white-space: nowrap;
+          overflow: hidden;
+        }
+
+        .admin-sidebar.collapsed .admin-logout-btn {
+          justify-content: center;
+          padding: 14px;
+        }
+
+        .admin-logout-btn span {
+          transition: opacity 0.3s;
+        }
+
+        .admin-sidebar.collapsed .admin-logout-btn span {
+          opacity: 0;
+          width: 0;
         }
 
         .admin-logout-btn:hover {
@@ -236,6 +325,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             height: 100vh;
           }
 
+          .collapse-toggle {
+            display: flex;
+          }
+
           .admin-menu-toggle {
             display: none;
           }
@@ -248,14 +341,27 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             padding: 40px 48px;
           }
         }
+
+        @media (max-width: 1023px) {
+          .collapse-toggle {
+            display: none;
+          }
+        }
       `}</style>
 
       <div className="admin-layout">
         {/* Sidebar */}
-        <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
+        <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""} ${sidebarCollapsed ? "collapsed" : ""}`}>
           <div className="admin-sidebar-logo">
             <h2>Afrique Solution</h2>
             <p>Admin Panel</p>
+            <button 
+              className="collapse-toggle"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
           </div>
 
           <nav className="admin-sidebar-nav">
@@ -267,6 +373,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   pathname === item.href ? "active" : ""
                 }`}
                 onClick={() => setSidebarOpen(false)}
+                title={sidebarCollapsed ? item.label : ""}
               >
                 <item.icon size={22} strokeWidth={2} />
                 <span>{item.label}</span>
@@ -275,7 +382,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </nav>
 
           <div className="admin-sidebar-footer">
-            <button onClick={handleLogout} className="admin-logout-btn">
+            <button onClick={handleLogout} className="admin-logout-btn" title={sidebarCollapsed ? "Logout" : ""}>
               <LogOut size={22} strokeWidth={2} />
               <span>Logout</span>
             </button>

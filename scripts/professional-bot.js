@@ -481,6 +481,23 @@ client.on('message', async (message) => {
     
     console.log(`📨 New message from ${contact.name || phone}: ${text}`);
     
+    // Track message in database
+    try {
+      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      await fetch('https://afriquesolution.site/api/track/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: messageId,
+          phone: phone,
+          message: text,
+          direction: 'incoming'
+        })
+      });
+    } catch (trackError) {
+      console.log('⚠️ Message tracking failed:', trackError.message);
+    }
+    
     // Get or create user session
     let session = userSessions.get(phone) || {
       phone: phone,
