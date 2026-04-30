@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { db } from '@/lib/db/client';
 
 export async function POST(request) {
   try {
@@ -28,12 +29,30 @@ export async function POST(request) {
     
     console.log(`💰 Payment ${depositId}: ${status}`);
     
+    // Save to database
+    try {
+      await db.execute({
+        sql: `INSERT OR REPLACE INTO orders (id, user_id, product_id, status, payment_method, created_at) 
+              VALUES (?, ?, ?, ?, ?, ?)`,
+        args: [
+          depositId,
+          payer?.address?.value || 'N/A',
+          body.statementDescription || 'Afrique Solution',
+          status,
+          correspondent || 'Mobile Money',
+          created || new Date().toISOString()
+        ]
+      });
+      console.log('✅ Payment saved to database');
+    } catch (dbError) {
+      console.error('❌ Database save error:', dbError);
+    }
+    
     if (status === 'COMPLETED') {
       console.log(`✅ Payment successful: ${depositedAmount} ${currency}`);
       
       // TODO: Send WhatsApp confirmation
       // TODO: Activate service (Canal+, DSTV, etc.)
-      // TODO: Update database
       
     } else if (status === 'FAILED') {
       console.log(`❌ Payment failed: ${failureReason}`);

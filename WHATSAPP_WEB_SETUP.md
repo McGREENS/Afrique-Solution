@@ -153,3 +153,13 @@ If you encounter issues:
 4. Ensure WhatsApp Business App is updated
 
 **Ready to launch in 2 days!** 🚀
+
+
+
+
+
+
+Email
+admin@afriquesolution.site
+Password
+Afrique2025!Secure

@@ -509,7 +509,7 @@ client.on('message', async (message) => {
           session.step = 'choose_service';
           response = `*Bienvenue chez Afrique Solution*\n\nChoisissez un service :\n\n1. CANAL+\n2. StarTimes\n3. DSTV\n4. VODACOM (unités et forfaits)\n5. Airtel (unités et forfaits)\n6. Orange (unités et forfaits)\n7. Courant SOCODE\n\nRépondez avec le numéro de votre choix.`;
         } else {
-          response = `*Welcome to Afrique Solution*\n*Bienvenue chez Afrique Solution*\n\nPlease choose your language:\nChoisissez votre langue :\n\n1. English\n2. Français\n\nReply with 1 or 2`;
+          response = `*Welcome to Afrique Solution*\n*Bienvenue chez Afrique Solution*\n\nPlease choose your language:\nChoisissez votre langue :\n\n1. English\n2. Français\n\nReply with 1 or 2\nRépondez 1 ou 2`;
         }
         break;
         
