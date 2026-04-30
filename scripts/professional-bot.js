@@ -4,13 +4,6 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
-// Prevent multiple instances
-if (global.whatsappClientInitialized) {
-  console.log('⚠️  WhatsApp client already initialized, skipping...');
-  return;
-}
-global.whatsappClientInitialized = true;
-
 console.log('🚀 Starting Railway WhatsApp Bot...');
 console.log('📱 Environment:', process.env.NODE_ENV || 'production');
 console.log('🔗 WhatsApp Number:', process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+250792593786');
@@ -32,9 +25,23 @@ const client = new Client({
       '--no-first-run',
       '--no-zygote',
       '--single-process',
-      '--disable-gpu'
+      '--disable-gpu',
+      '--disable-web-security',
+      '--disable-features=VizDisplayCompositor',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
+      '--disable-extensions',
+      '--disable-default-apps',
+      '--disable-sync',
+      '--disable-blink-features=AutomationControlled'
     ],
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable'
+  },
+  // Improve connection stability
+  webVersionCache: {
+    type: 'remote',
+    remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
   }
 });
 
@@ -473,23 +480,6 @@ client.on('message', async (message) => {
     const text = message.body.trim();
     
     console.log(`📨 New message from ${contact.name || phone}: ${text}`);
-    
-    // Track message in database
-    try {
-      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      await fetch('https://afriquesolution.site/api/track/message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: messageId,
-          phone: phone,
-          message: text,
-          direction: 'incoming'
-        })
-      });
-    } catch (trackError) {
-      console.log('⚠️ Message tracking failed:', trackError.message);
-    }
     
     // Get or create user session
     let session = userSessions.get(phone) || {
