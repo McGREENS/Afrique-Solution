@@ -28,7 +28,7 @@ const content = {
   s7_body:      { fr: "Vos données sont stockées de manière sécurisée dans notre base de données. Nous utilisons des connexions chiffrées (HTTPS) pour toutes les communications.", en: "Your data is stored securely in our database. We use encrypted connections (HTTPS) for all communications." },
 
   s8_title:     { fr: "8. Contact", en: "8. Contact" },
-  s8_body:      { fr: "Pour toute question relative à cette politique, contactez-nous :\nEmail : contact@afriquesolution.site\nWhatsApp : +243 XXX XXX XXX", en: "For any questions regarding this policy, contact us:\nEmail: contact@afriquesolution.site\nWhatsApp: +243 XXX XXX XXX" },
+  s8_body:      { fr: "Pour toute question relative à cette politique, contactez-nous :\nEmail : contact@afriquesolution.site\nWhatsApp : +243 961 358 219", en: "For any questions regarding this policy, contact us:\nEmail: contact@afriquesolution.site\nWhatsApp: +243 961 358 219" },
 };
 
 export default function PrivacyPage() {

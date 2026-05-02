@@ -36,8 +36,8 @@ export default function AboutPage() {
                 <Phone className="text-[#b4f75f]" size={20} />
                 <div>
                   <p className="font-medium text-gray-900">Phone:</p>
-                  <a href="tel:+250780115764" className="text-blue-600 hover:underline">
-                    +250 780 115 764
+                  <a href="tel:+243961358219" className="text-blue-600 hover:underline">
+                    +243 961 358 219
                   </a>
                 </div>
               </div>
@@ -46,8 +46,8 @@ export default function AboutPage() {
                 <Mail className="text-[#b4f75f]" size={20} />
                 <div>
                   <p className="font-medium text-gray-900">Email:</p>
-                  <a href="mailto:laurierhab@gmail.com" className="text-blue-600 hover:underline">
-                    laurierhab@gmail.com
+                  <a href="mailto:info@afriquesolution.site" className="text-blue-600 hover:underline">
+                    info@afriquesolution.site
                   </a>
                 </div>
               </div>

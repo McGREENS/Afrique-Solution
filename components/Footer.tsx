@@ -113,14 +113,14 @@ export default function Footer() {
             <ul className="flex flex-col gap-4">
               <li className="flex items-start gap-3">
                 <Phone size={17} strokeWidth={1.8} className="mt-0.5 shrink-0 text-[#b4f75f]" />
-                <a href="tel:+250780115764" className="text-[15px] text-white/65 transition-colors hover:text-white">
-                  +250 780 115 764
+                <a href="tel:+243961358219" className="text-[15px] text-white/65 transition-colors hover:text-white">
+                  +243 961 358 219
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <Mail size={17} strokeWidth={1.8} className="mt-0.5 shrink-0 text-[#b4f75f]" />
-                <a href="mailto:laurierhab@gmail.com" className="text-[15px] text-white/65 transition-colors hover:text-white">
-                  laurierhab@gmail.com
+                <a href="mailto:info@afriquesolution.site" className="text-[15px] text-white/65 transition-colors hover:text-white">
+                  info@afriquesolution.site
                 </a>
               </li>
               <li className="flex items-start gap-3">
