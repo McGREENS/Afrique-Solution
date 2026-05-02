@@ -35,7 +35,7 @@ client.on('qr', (qr) => {
 });
 
 client.on('ready', () => {
-  console.log('✅ Bot is ready! Customers can message +250792593786');
+  console.log('✅ Bot is ready! Customers can message +243961358219');
 });
 
 client.on('message', async (message) => {

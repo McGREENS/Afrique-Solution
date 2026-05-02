@@ -6,7 +6,7 @@ const qrcode = require('qrcode-terminal');
 
 console.log('🚀 Starting Railway WhatsApp Bot...');
 console.log('📱 Environment:', process.env.NODE_ENV || 'production');
-console.log('🔗 WhatsApp Number:', process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+250792593786');
+console.log('🔗 WhatsApp Number:', process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+243961358219');
 console.log('⏰ Timestamp:', new Date().toISOString());
 console.log('🔄 Initializing WhatsApp Web Client...');
 
@@ -413,7 +413,7 @@ client.on('authenticated', async () => {
 
 client.on('ready', async () => {
   console.log('🎉 WhatsApp Web Client is ready!');
-  console.log('✅ Your business number (+250792593786) is now connected');
+  console.log('✅ Your business number (+243961358219) is now connected');
   console.log('📞 Customers can message your business number directly');
   console.log('🤖 Professional bot is ready with real pricing!');
   console.log('💰 Services: Canal+, StarTimes, DSTV, Vodacom, Airtel, Orange, SOCODE');

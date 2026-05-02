@@ -32,7 +32,7 @@ TURSO_DATABASE_URL=libsql://afriquesolution-laurier.aws-us-east-1.turso.io
 TURSO_AUTH_TOKEN=eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzQ1NTM3NjksImlkIjoiMDE5ZDJiYTMtMmIwMS03NWQ4LTk2NWMtMGNiZTNhMWM1ZGY1IiwicmlkIjoiZTUzMDVhZjUtY2I4Mi00ODUyLWJlZDktMzUxNmY3OWRkOWZmIn0.ZZN38Vur8VvWTNucu_NPS474n08wZ5ifEnqWHHsDZDSSwV-dXX2szxmmjwC8BHkcyh0LeIPeg_daIg3XpKwPCQ
 PAWAPAY_API_TOKEN=eyJraWQiOiIxIiwiYWxnIjoiRVMyNTYifQ.eyJ0dCI6IkFBVCIsInN1YiI6IjE4NTc2IiwibWF2IjoiMSIsImV4cCI6MjA5MTUzNjE5MCwiaWF0IjoxNzc1OTE2OTkwLCJwbSI6IkRBRixQQUYiLCJqdGkiOiJmY2FmYjc0ZS1hMzZkLTQ2NmItYTQ5My00YTA2MjFjMjdhYjYifQ.-sc3k3rhPUaFlgOV71DtD7X_E9QZAKz5HByLZbchzZTWMIk79uECuFLcMwtnfVAabXNAwqUD5cYx0AhAFtefYQ
 PAWAPAY_BASE_URL=https://api.sandbox.pawapay.io
-NEXT_PUBLIC_WHATSAPP_NUMBER=+250792593786
+NEXT_PUBLIC_WHATSAPP_NUMBER=+243961358219
 NEXT_PUBLIC_SITE_URL=https://your-app-name.vercel.app
 SETUP_SECRET=afrique_setup_2025
 ```
@@ -76,7 +76,7 @@ Visit: `https://your-domain.com/api/debug`
 Should return: `{"status": "ok", "timestamp": "..."}`
 
 ### Step 2: Test Webhook
-Send a message to your WhatsApp Business number (+250792593786)
+Send a message to your WhatsApp Business number (+243961358219)
 
 ### Step 3: Check Logs
 Monitor your deployment logs for:

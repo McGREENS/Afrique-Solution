@@ -177,7 +177,7 @@ client.on('authenticated', () => {
 
 client.on('ready', async () => {
   console.log('🎉 WhatsApp Web Client is ready!');
-  console.log('✅ Your business number (+250792593786) is now connected');
+  console.log('✅ Your business number (+243961358219) is now connected');
   console.log('📞 Customers can message your business number directly');
   console.log('🤖 Bot is ready to respond to messages!');
   console.log('');

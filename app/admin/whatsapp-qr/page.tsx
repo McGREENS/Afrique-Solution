@@ -297,7 +297,7 @@ export default function WhatsAppQRPage() {
               </p>
               <div className="success-info">
                 <p>
-                  <strong>Test your bot:</strong> Send a message to +250792593786
+                  <strong>Test your bot:</strong> Send a message to your connect number
                 </p>
               </div>
             </div>
