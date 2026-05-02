@@ -505,7 +505,6 @@ client.on('message', async (message) => {
         
         if (serviceIndex >= 0 && serviceIndex < services.length) {
           session.selectedService = services[serviceIndex];
-          session.step = 'choose_region';
           
           const serviceNames = {
             'canal': 'Canal+',
@@ -517,7 +516,37 @@ client.on('message', async (message) => {
             'socode': 'SOCODE Electricity'
           };
           
-          response = `*Service choisi : ${serviceNames[services[serviceIndex]]}*\n\nChoisissez votre pays :\n\n1. RD Congo\n2. Rwanda\n3. Burundi\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
+          // For Vodacom and SOCODE, skip country selection and set to DRC
+          if (session.selectedService === 'vodacom') {
+            session.selectedRegion = 'drc';
+            session.step = 'choose_category';
+            
+            const categoryNames = {
+              'bulk_units': 'Unités en gros',
+              'internet_sms': 'Internet et SMS',
+              'call_minutes': 'Minutes d\'appel'
+            };
+            
+            response = `*Pays : RD Congo*\n*Service : VODACOM*\n\nChoisissez une catégorie :\n\n1. ${categoryNames.bulk_units}\n2. ${categoryNames.internet_sms}\n3. ${categoryNames.call_minutes}\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
+          } else if (session.selectedService === 'socode') {
+            session.selectedRegion = 'drc';
+            session.step = 'choose_package';
+            
+            const packages = pricing[session.selectedService][session.selectedRegion];
+            const packageKeys = Object.keys(packages);
+            
+            let packageList = '';
+            packageKeys.forEach((key, index) => {
+              const pkg = packages[key];
+              packageList += `${index + 1}. ${pkg.name} - $${pkg.price}\n`;
+            });
+            
+            response = `*Pays : RD Congo*\n*Service : SOCODE*\n\nForfaits disponibles :\n\n${packageList}\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
+          } else {
+            // For other services, show country selection
+            session.step = 'choose_region';
+            response = `*Service choisi : ${serviceNames[services[serviceIndex]]}*\n\nChoisissez votre pays :\n\n1. RD Congo\n2. Rwanda\n3. Burundi\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
+          }
         } else {
           // Show welcome message with service list
           response = `*Bienvenue chez Afrique Solution*\n\nChoisissez un service :\n\n1. CANAL+\n2. StarTimes\n3. DSTV\n4. VODACOM (unités et forfaits)\n5. Airtel (unités et forfaits)\n6. Orange (unités et forfaits)\n7. Courant SOCODE\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
