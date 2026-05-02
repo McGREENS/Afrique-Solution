@@ -485,34 +485,20 @@ client.on('message', async (message) => {
     let session = userSessions.get(phone) || {
       phone: phone,
       language: 'fr',
-      step: 'choose_language'
+      step: 'choose_service'
     };
     
     let response = '';
     
     // Handle restart commands
-    if (text.toLowerCase() === 'menu' || text.toLowerCase() === 'restart') {
-      session.step = 'choose_language';
+    if (text === '0' || text.toLowerCase() === 'menu' || text.toLowerCase() === 'restart') {
+      session.step = 'choose_service';
       session.language = 'fr';
       userSessions.set(phone, session);
     }
     
     // Process based on current step
     switch (session.step) {
-      case 'choose_language':
-        if (text === '1' || text.toLowerCase().includes('english') || text.toLowerCase() === 'en') {
-          session.language = 'en';
-          session.step = 'choose_service';
-          response = `*Welcome to Afrique Solution*\n\nChoose a service:\n\n1. CANAL+\n2. StarTimes\n3. DSTV\n4. VODACOM (units & packages)\n5. Airtel (units & packages)\n6. Orange (units & packages)\n7. SOCODE Electricity\n\nReply with the number of your choice.`;
-        } else if (text === '2' || text.toLowerCase().includes('français') || text.toLowerCase().includes('francais') || text.toLowerCase() === 'fr') {
-          session.language = 'fr';
-          session.step = 'choose_service';
-          response = `*Bienvenue chez Afrique Solution*\n\nChoisissez un service :\n\n1. CANAL+\n2. StarTimes\n3. DSTV\n4. VODACOM (unités et forfaits)\n5. Airtel (unités et forfaits)\n6. Orange (unités et forfaits)\n7. Courant SOCODE\n\nRépondez avec le numéro de votre choix.`;
-        } else {
-          response = `*Welcome to Afrique Solution*\n*Bienvenue chez Afrique Solution*\n\nPlease choose your language:\nChoisissez votre langue :\n\n1. English\n2. Français\n\nReply with 1 or 2\nRépondez 1 ou 2`;
-        }
-        break;
-        
       case 'choose_service':
         const services = ['canal', 'startimes', 'dstv', 'vodacom', 'airtel', 'orange', 'socode'];
         const serviceIndex = parseInt(text) - 1;
@@ -531,14 +517,9 @@ client.on('message', async (message) => {
             'socode': 'SOCODE Electricity'
           };
           
-          // Handle all services normally
-          response = session.language === 'en' 
-            ? `*Service Selected: ${serviceNames[services[serviceIndex]]}*\n\nChoose your country:\n\n1. DR Congo\n2. Rwanda\n3. Burundi\n\nReply with the number of your choice.`
-            : `*Service choisi : ${serviceNames[services[serviceIndex]]}*\n\nChoisissez votre pays :\n\n1. RD Congo\n2. Rwanda\n3. Burundi\n\nRépondez avec le numéro de votre choix.`;
+          response = `*Service choisi : ${serviceNames[services[serviceIndex]]}*\n\nChoisissez votre pays :\n\n1. RD Congo\n2. Rwanda\n3. Burundi\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
         } else {
-          response = session.language === 'en' 
-            ? 'Please choose a valid service (1-7)' 
-            : 'Veuillez choisir un service valide (1-7)';
+          response = 'Veuillez choisir un service valide (1-7).\n\nTapez 0 pour recommencer.';
         }
         break;
         
@@ -554,20 +535,18 @@ client.on('message', async (message) => {
             session.step = 'choose_category';
             
             const categoryNames = {
-              'bulk_units': session.language === 'en' ? 'Bulk Units' : 'Unités en gros',
-              'internet_sms': session.language === 'en' ? 'Internet & SMS' : 'Internet et SMS',
-              'call_minutes': session.language === 'en' ? 'Call Minutes' : 'Minutes d\'appel'
+              'bulk_units': 'Unités en gros',
+              'internet_sms': 'Internet et SMS',
+              'call_minutes': 'Minutes d\'appel'
             };
             
             const countryNames = {
-              'drc': session.language === 'en' ? 'DR Congo' : 'RD Congo',
+              'drc': 'RD Congo',
               'rwanda': 'Rwanda',
               'burundi': 'Burundi'
             };
             
-            response = session.language === 'en'
-              ? `*Country: ${countryNames[regions[regionIndex]]}*\n*Service: ${session.selectedService.toUpperCase()}*\n\nChoose a category:\n\n1. ${categoryNames.bulk_units}\n2. ${categoryNames.internet_sms}\n3. ${categoryNames.call_minutes}\n\nReply with the number of your choice.`
-              : `*Pays : ${countryNames[regions[regionIndex]]}*\n*Service : ${session.selectedService.toUpperCase()}*\n\nChoisissez une catégorie :\n\n1. ${categoryNames.bulk_units}\n2. ${categoryNames.internet_sms}\n3. ${categoryNames.call_minutes}\n\nRépondez avec le numéro de votre choix.`;
+            response = `*Pays : ${countryNames[regions[regionIndex]]}*\n*Service : ${session.selectedService.toUpperCase()}*\n\nChoisissez une catégorie :\n\n1. ${categoryNames.bulk_units}\n2. ${categoryNames.internet_sms}\n3. ${categoryNames.call_minutes}\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
           } else {
             // Handle other services normally
             session.step = 'choose_package';
@@ -582,19 +561,15 @@ client.on('message', async (message) => {
             });
             
             const countryNames = {
-              'drc': session.language === 'en' ? 'DR Congo' : 'RD Congo',
+              'drc': 'RD Congo',
               'rwanda': 'Rwanda',
               'burundi': 'Burundi'
             };
             
-            response = session.language === 'en'
-              ? `*Country: ${countryNames[regions[regionIndex]]}*\n*Service: ${session.selectedService.toUpperCase()}*\n\nAvailable packages:\n\n${packageList}\nReply with the number of your choice.`
-              : `*Pays : ${countryNames[regions[regionIndex]]}*\n*Service : ${session.selectedService.toUpperCase()}*\n\nForfaits disponibles :\n\n${packageList}\nRépondez avec le numéro de votre choix.`;
+            response = `*Pays : ${countryNames[regions[regionIndex]]}*\n*Service : ${session.selectedService.toUpperCase()}*\n\nForfaits disponibles :\n\n${packageList}\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
           }
         } else {
-          response = session.language === 'en' 
-            ? 'Please choose a valid country (1-3)' 
-            : 'Veuillez choisir un pays valide (1-3)';
+          response = 'Veuillez choisir un pays valide (1-3).\n\nTapez 0 pour recommencer.';
         }
         break;
         
@@ -615,13 +590,9 @@ client.on('message', async (message) => {
             packageList += `${index + 1}. ${pkg.name} - $${pkg.price}\n`;
           });
           
-          response = session.language === 'en'
-            ? `*Category: ${categoryData.name}*\n\nAvailable packages:\n\n${packageList}\nReply with the number of your choice.`
-            : `*Catégorie : ${categoryData.name}*\n\nForfaits disponibles :\n\n${packageList}\nRépondez avec le numéro de votre choix.`;
+          response = `*Catégorie : ${categoryData.name}*\n\nForfaits disponibles :\n\n${packageList}\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
         } else {
-          response = session.language === 'en' 
-            ? 'Please choose a valid category (1-3)' 
-            : 'Veuillez choisir une catégorie valide (1-3)';
+          response = 'Veuillez choisir une catégorie valide (1-3).\n\nTapez 0 pour recommencer.';
         }
         break;
         
@@ -652,23 +623,19 @@ client.on('message', async (message) => {
           let fieldName, example;
           
           if (isElectricity) {
-            fieldName = session.language === 'en' ? 'meter' : 'compteur';
+            fieldName = 'compteur';
             example = '12345678901';
           } else if (isTV) {
-            fieldName = session.language === 'en' ? 'decoder' : 'décodeur';
+            fieldName = 'décodeur';
             example = '24510033256001';
           } else {
-            fieldName = session.language === 'en' ? 'phone' : 'téléphone';
+            fieldName = 'téléphone';
             example = '250781234567';
           }
           
-          response = session.language === 'en'
-            ? `*Package Selected: ${selectedPackage.name} - $${selectedPackage.price}*\n\nPlease enter your ${fieldName} number:\n\nExample: ${example}`
-            : `*Forfait choisi : ${selectedPackage.name} - $${selectedPackage.price}*\n\nVeuillez entrer votre numéro de ${fieldName} :\n\nExemple : ${example}`;
+          response = `*Forfait choisi : ${selectedPackage.name} - $${selectedPackage.price}*\n\nVeuillez entrer votre numéro de ${fieldName} :\n\nExemple : ${example}\n\nTapez 0 pour recommencer.`;
         } else {
-          response = session.language === 'en' 
-            ? `Please choose a valid package (1-${packageKeys.length})` 
-            : `Veuillez choisir un forfait valide (1-${packageKeys.length})`;
+          response = `Veuillez choisir un forfait valide (1-${packageKeys.length}).\n\nTapez 0 pour recommencer.`;
         }
         break;
         
@@ -688,13 +655,9 @@ client.on('message', async (message) => {
           const orderId = generateUUID();
           session.orderId = orderId;
           
-          response = session.language === 'en'
-            ? `*ORDER CONFIRMATION*\n\nService: ${session.selectedService.toUpperCase()}\nCountry: ${session.selectedRegion.toUpperCase()}\nPackage: ${session.selectedPackageName}\nAmount: $${session.selectedPrice}\nNumber: ${session.decoderNumber}\nOrder ID: ${orderId}\n\n*PAYMENT OPTIONS*\n\n1. Pay with Mobile Money (Automatic)\n2. Manual Payment Instructions\n\nReply with 1 or 2`
-            : `*CONFIRMATION DE COMMANDE*\n\nService : ${session.selectedService.toUpperCase()}\nPays : ${session.selectedRegion.toUpperCase()}\nForfait : ${session.selectedPackageName}\nMontant : $${session.selectedPrice}\nNuméro : ${session.decoderNumber}\nID Commande : ${orderId}\n\n*OPTIONS DE PAIEMENT*\n\n1. Payer avec Mobile Money (Automatique)\n2. Instructions de paiement manuel\n\nRépondez avec 1 ou 2`;
+          response = `*CONFIRMATION DE COMMANDE*\n\nService : ${session.selectedService.toUpperCase()}\nPays : ${session.selectedRegion.toUpperCase()}\nForfait : ${session.selectedPackageName}\nMontant : $${session.selectedPrice}\nNuméro : ${session.decoderNumber}\nID Commande : ${orderId}\n\n*OPTIONS DE PAIEMENT*\n\n1. Payer avec Mobile Money (Automatique)\n2. Instructions de paiement manuel\n\nRépondez avec 1 ou 2\n\nTapez 0 pour recommencer.`;
         } else {
-          response = session.language === 'en' 
-            ? 'Please enter a valid number (at least 6 digits)' 
-            : 'Veuillez entrer un numéro valide (au moins 6 chiffres)';
+          response = 'Veuillez entrer un numéro valide (au moins 6 chiffres).\n\nTapez 0 pour recommencer.';
         }
         break;
         
@@ -702,19 +665,13 @@ client.on('message', async (message) => {
         if (text === '1') {
           // Automatic PawaPay payment
           session.step = 'enter_phone';
-          response = session.language === 'en'
-            ? `*AUTOMATIC PAYMENT*\n\nPlease enter your Mobile Money phone number:\n\nExample: 250781234567\n\nMake sure you have $${session.selectedPrice} in your account.`
-            : `*PAIEMENT AUTOMATIQUE*\n\nVeuillez entrer votre numéro Mobile Money :\n\nExemple : 250781234567\n\nAssurez-vous d'avoir $${session.selectedPrice} dans votre compte.`;
+          response = `*PAIEMENT AUTOMATIQUE*\n\nVeuillez entrer votre numéro Mobile Money :\n\nExemple : 250781234567\n\nAssurez-vous d'avoir $${session.selectedPrice} dans votre compte.\n\nTapez 0 pour recommencer.`;
         } else if (text === '2') {
           // Manual payment instructions
           session.step = 'payment_complete';
-          response = session.language === 'en'
-            ? `*MANUAL PAYMENT INSTRUCTIONS*\n\nSend $${session.selectedPrice} via Mobile Money to:\n+250796552804\n\nInclude reference: ${session.orderId}\n\nYour service will be activated within 30 minutes after payment confirmation.\n\nNeed help? Reply "menu" to restart.`
-            : `*INSTRUCTIONS DE PAIEMENT MANUEL*\n\nEnvoyez $${session.selectedPrice} via Mobile Money à :\n+250796552804\n\nIncluez la référence : ${session.orderId}\n\nVotre service sera activé dans les 30 minutes après confirmation du paiement.\n\nBesoin d'aide ? Répondez "menu" pour recommencer.`;
+          response = `*INSTRUCTIONS DE PAIEMENT MANUEL*\n\nEnvoyez $${session.selectedPrice} via Mobile Money :\n\n*Pour Airtel Money :*\n0990960434\nFADHILI MANASSÉ\n\n*Pour Vodacom M-Pesa :*\n0822100111\nChristian Richard\n\nRéférence : ${session.orderId}\n\nVotre service sera activé dans les 30 minutes après confirmation du paiement.\n\nTapez 0 pour recommencer.`;
         } else {
-          response = session.language === 'en' 
-            ? 'Please choose 1 for automatic payment or 2 for manual payment' 
-            : 'Veuillez choisir 1 pour paiement automatique ou 2 pour paiement manuel';
+          response = 'Veuillez choisir 1 pour paiement automatique ou 2 pour paiement manuel.\n\nTapez 0 pour recommencer.';
         }
         break;
         
@@ -724,9 +681,7 @@ client.on('message', async (message) => {
           session.step = 'processing_payment';
           
           // Show processing message
-          response = session.language === 'en'
-            ? `*PROCESSING PAYMENT*\n\nInitiating payment request...\nAmount: $${session.selectedPrice}\nPhone: ${session.paymentPhone}\n\nPlease wait...`
-            : `*TRAITEMENT DU PAIEMENT*\n\nInitialisation de la demande de paiement...\nMontant : $${session.selectedPrice}\nTéléphone : ${session.paymentPhone}\n\nVeuillez patienter...`;
+          response = `*TRAITEMENT DU PAIEMENT*\n\nInitialisation de la demande de paiement...\nMontant : $${session.selectedPrice}\nTéléphone : ${session.paymentPhone}\n\nVeuillez patienter...`;
           
           // Send processing message first
           await message.reply(response);
@@ -741,34 +696,24 @@ client.on('message', async (message) => {
             );
             
             if (paymentResult && paymentResult.status === 'ACCEPTED') {
-              response = session.language === 'en'
-                ? `*PAYMENT REQUEST SENT*\n\n✅ Payment request sent to ${session.paymentPhone}\n\nPlease check your phone and approve the payment of $${session.selectedPrice}\n\nOrder ID: ${session.orderId}\n\nYour service will be activated automatically after payment confirmation.\n\nNeed help? Reply "menu" to restart.`
-                : `*DEMANDE DE PAIEMENT ENVOYÉE*\n\n✅ Demande de paiement envoyée à ${session.paymentPhone}\n\nVeuillez vérifier votre téléphone et approuver le paiement de $${session.selectedPrice}\n\nID Commande : ${session.orderId}\n\nVotre service sera activé automatiquement après confirmation du paiement.\n\nBesoin d'aide ? Répondez "menu" pour recommencer.`;
+              response = `*DEMANDE DE PAIEMENT ENVOYÉE*\n\n✅ Demande de paiement envoyée à ${session.paymentPhone}\n\nVeuillez vérifier votre téléphone et approuver le paiement de $${session.selectedPrice}\n\nID Commande : ${session.orderId}\n\nVotre service sera activé automatiquement après confirmation du paiement.\n\nTapez 0 pour recommencer.`;
               session.step = 'payment_complete';
             } else {
-              response = session.language === 'en'
-                ? `*PAYMENT FAILED*\n\n❌ Unable to process automatic payment.\n\nPlease try manual payment:\nSend $${session.selectedPrice} to +250796552804\nReference: ${session.orderId}\n\nNeed help? Reply "menu" to restart.`
-                : `*PAIEMENT ÉCHOUÉ*\n\n❌ Impossible de traiter le paiement automatique.\n\nVeuillez essayer le paiement manuel :\nEnvoyez $${session.selectedPrice} à +250796552804\nRéférence : ${session.orderId}\n\nBesoin d'aide ? Répondez "menu" pour recommencer.`;
+              response = `*PAIEMENT ÉCHOUÉ*\n\n❌ Impossible de traiter le paiement automatique.\n\nVeuillez essayer le paiement manuel :\n\n*Pour Airtel Money :*\n0990960434 - FADHILI MANASSÉ\n\n*Pour Vodacom M-Pesa :*\n0822100111 - Christian Richard\n\nRéférence : ${session.orderId}\n\nTapez 0 pour recommencer.`;
               session.step = 'payment_complete';
             }
           } catch (error) {
             console.error('Payment processing error:', error);
-            response = session.language === 'en'
-              ? `*PAYMENT ERROR*\n\n❌ Payment system temporarily unavailable.\n\nPlease use manual payment:\nSend $${session.selectedPrice} to +250796552804\nReference: ${session.orderId}\n\nNeed help? Reply "menu" to restart.`
-              : `*ERREUR DE PAIEMENT*\n\n❌ Système de paiement temporairement indisponible.\n\nVeuillez utiliser le paiement manuel :\nEnvoyez $${session.selectedPrice} à +250796552804\nRéférence : ${session.orderId}\n\nBesoin d'aide ? Répondez "menu" pour recommencer.`;
+            response = `*ERREUR DE PAIEMENT*\n\n❌ Système de paiement temporairement indisponible.\n\nVeuillez utiliser le paiement manuel :\n\n*Pour Airtel Money :*\n0990960434 - FADHILI MANASSÉ\n\n*Pour Vodacom M-Pesa :*\n0822100111 - Christian Richard\n\nRéférence : ${session.orderId}\n\nTapez 0 pour recommencer.`;
             session.step = 'payment_complete';
           }
         } else {
-          response = session.language === 'en' 
-            ? 'Please enter a valid phone number (numbers only, at least 10 digits)' 
-            : 'Veuillez entrer un numéro de téléphone valide (chiffres uniquement, au moins 10 chiffres)';
+          response = 'Veuillez entrer un numéro de téléphone valide (chiffres uniquement, au moins 10 chiffres).\n\nTapez 0 pour recommencer.';
         }
         break;
         
       default:
-        response = session.language === 'en' 
-          ? 'Type "menu" to start over.' 
-          : 'Tapez "menu" pour recommencer.';
+        response = 'Tapez 0 pour recommencer.';
     }
     
     // Save session
@@ -783,7 +728,7 @@ client.on('message', async (message) => {
   } catch (error) {
     console.error('❌ Error processing message:', error);
     try {
-      await message.reply('Sorry, there was an error. Please type "menu" to restart.\nDésolé, il y a eu une erreur. Tapez "menu" pour recommencer.');
+      await message.reply('Désolé, il y a eu une erreur. Tapez 0 pour recommencer.');
     } catch (replyError) {
       console.error('❌ Failed to send error message:', replyError);
     }
