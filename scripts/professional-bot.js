@@ -519,15 +519,9 @@ client.on('message', async (message) => {
           // For Vodacom and SOCODE, skip country selection and set to DRC
           if (session.selectedService === 'vodacom') {
             session.selectedRegion = 'drc';
-            session.step = 'choose_category';
+            session.step = 'vodacom_menu';
             
-            const categoryNames = {
-              'bulk_units': 'Unités en gros',
-              'internet_sms': 'Internet et SMS',
-              'call_minutes': 'Minutes d\'appel'
-            };
-            
-            response = `*Pays : RD Congo*\n*Service : VODACOM*\n\nChoisissez une catégorie :\n\n1. ${categoryNames.bulk_units}\n2. ${categoryNames.internet_sms}\n3. ${categoryNames.call_minutes}\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
+            response = `*Avec SUPER DEALER NATIONAL, Ets ALI-MOBILE*\n\n1. Vodae (unités Vodacom)\n2. Création sim mère\n3. Réinitialiser mot de passe\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
           } else if (session.selectedService === 'socode') {
             session.selectedRegion = 'drc';
             session.step = 'choose_package';
@@ -550,6 +544,78 @@ client.on('message', async (message) => {
         } else {
           // Show welcome message with service list
           response = `*Bienvenue chez Afrique Solution*\n\nChoisissez un service :\n\n1. CANAL+\n2. StarTimes\n3. DSTV\n4. VODACOM (unités et forfaits)\n5. Airtel (unités et forfaits)\n6. Orange (unités et forfaits)\n7. Courant SOCODE\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
+        }
+        break;
+        
+      case 'vodacom_menu':
+        const vodacomOption = parseInt(text);
+        
+        if (vodacomOption === 1) {
+          // Option 1: Vodae (unités Vodacom) - continue with normal flow
+          session.step = 'choose_category';
+          
+          const categoryNames = {
+            'bulk_units': 'Unités en gros',
+            'internet_sms': 'Internet et SMS',
+            'call_minutes': 'Minutes d\'appel'
+          };
+          
+          response = `*Pays : RD Congo*\n*Service : VODACOM*\n\nChoisissez une catégorie :\n\n1. ${categoryNames.bulk_units}\n2. ${categoryNames.internet_sms}\n3. ${categoryNames.call_minutes}\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
+        } else if (vodacomOption === 2) {
+          // Option 2: Création sim mère
+          session.step = 'sim_mere_numero';
+          response = `*Création sim mère*\n\nVeuillez entrer votre numéro Vodacom :\n\nExemple : 0991234567\n\nTapez 0 pour recommencer.`;
+        } else if (vodacomOption === 3) {
+          // Option 3: Réinitialiser mot de passe (coming soon)
+          session.step = 'choose_service';
+          response = `Cette option sera bientôt disponible.\n\nTapez 0 pour recommencer.`;
+        } else {
+          response = `Veuillez choisir une option valide (1-3).\n\nTapez 0 pour recommencer.`;
+        }
+        break;
+        
+      case 'sim_mere_numero':
+        if (text.length >= 9) {
+          session.simMereNumero = text;
+          session.step = 'sim_mere_nom';
+          response = `*Création sim mère*\n\nNuméro : ${text}\n\nVeuillez entrer votre nom complet :\n\nTapez 0 pour recommencer.`;
+        } else {
+          response = `Veuillez entrer un numéro valide (au moins 9 chiffres).\n\nTapez 0 pour recommencer.`;
+        }
+        break;
+        
+      case 'sim_mere_nom':
+        if (text.length >= 3) {
+          session.simMereNom = text;
+          session.step = 'sim_mere_adresse';
+          response = `*Création sim mère*\n\nNuméro : ${session.simMereNumero}\nNom : ${text}\n\nVeuillez entrer votre adresse (ville et province) :\n\nExemple : Kinshasa, Kinshasa\n\nTapez 0 pour recommencer.`;
+        } else {
+          response = `Veuillez entrer un nom valide.\n\nTapez 0 pour recommencer.`;
+        }
+        break;
+        
+      case 'sim_mere_adresse':
+        if (text.length >= 3) {
+          session.simMereAdresse = text;
+          session.step = 'choose_service';
+          
+          // Log the sim mère request for admin
+          console.log('\n========== CRÉATION SIM MÈRE ==========');
+          console.log('Date:', new Date().toISOString());
+          console.log('Client Phone:', session.phone);
+          console.log('Numéro Vodacom:', session.simMereNumero);
+          console.log('Nom complet:', session.simMereNom);
+          console.log('Adresse:', text);
+          console.log('=========================================\n');
+          
+          response = `*Création sim mère*\n\n✅ Demande reçue avec succès !\n\nNuméro : ${session.simMereNumero}\nNom : ${session.simMereNom}\nAdresse : ${text}\n\nMerci ! Nous vous contacterons bientôt.\n\nTapez 0 pour recommencer.`;
+          
+          // Clear sim mère data
+          delete session.simMereNumero;
+          delete session.simMereNom;
+          delete session.simMereAdresse;
+        } else {
+          response = `Veuillez entrer une adresse valide.\n\nTapez 0 pour recommencer.`;
         }
         break;
         
@@ -699,7 +765,7 @@ client.on('message', async (message) => {
         } else if (text === '2') {
           // Manual payment instructions
           session.step = 'payment_complete';
-          response = `*INSTRUCTIONS DE PAIEMENT MANUEL*\n\nEnvoyez $${session.selectedPrice} via Mobile Money :\n\n*Pour Airtel Money :*\n0990960434\nFADHILI MANASSÉ\n\n*Pour Vodacom M-Pesa :*\n0822100111\nChristian Richard\n\nRéférence : ${session.orderId}\n\nVotre service sera activé dans les 30 minutes après confirmation du paiement.\n\nTapez 0 pour recommencer.`;
+          response = `*INSTRUCTIONS DE PAIEMENT MANUEL*\n\nEnvoyez $${session.selectedPrice} via Mobile Money :\n\n*Pour Airtel Money retrait :*\n0990960434\nFADHILI MANASSÉ\n\n*Pour Vodacom M-Pesa :*\n0822100111\nChristian Richard\n\nRéférence : ${session.orderId}\n\nVotre service sera activé dans les 30 minutes après confirmation du paiement.\n\nTapez 0 pour recommencer.`;
         } else {
           response = 'Veuillez choisir 1 pour paiement automatique ou 2 pour paiement manuel.\n\nTapez 0 pour recommencer.';
         }
@@ -729,12 +795,12 @@ client.on('message', async (message) => {
               response = `*DEMANDE DE PAIEMENT ENVOYÉE*\n\n✅ Demande de paiement envoyée à ${session.paymentPhone}\n\nVeuillez vérifier votre téléphone et approuver le paiement de $${session.selectedPrice}\n\nID Commande : ${session.orderId}\n\nVotre service sera activé automatiquement après confirmation du paiement.\n\nTapez 0 pour recommencer.`;
               session.step = 'payment_complete';
             } else {
-              response = `*PAIEMENT ÉCHOUÉ*\n\n❌ Impossible de traiter le paiement automatique.\n\nVeuillez essayer le paiement manuel :\n\n*Pour Airtel Money :*\n0990960434 - FADHILI MANASSÉ\n\n*Pour Vodacom M-Pesa :*\n0822100111 - Christian Richard\n\nRéférence : ${session.orderId}\n\nTapez 0 pour recommencer.`;
+              response = `*PAIEMENT ÉCHOUÉ*\n\n❌ Impossible de traiter le paiement automatique.\n\nVeuillez essayer le paiement manuel :\n\n*Pour Airtel Money retrait :*\n0990960434 - FADHILI MANASSÉ\n\n*Pour Vodacom M-Pesa :*\n0822100111 - Christian Richard\n\nRéférence : ${session.orderId}\n\nTapez 0 pour recommencer.`;
               session.step = 'payment_complete';
             }
           } catch (error) {
             console.error('Payment processing error:', error);
-            response = `*ERREUR DE PAIEMENT*\n\n❌ Système de paiement temporairement indisponible.\n\nVeuillez utiliser le paiement manuel :\n\n*Pour Airtel Money :*\n0990960434 - FADHILI MANASSÉ\n\n*Pour Vodacom M-Pesa :*\n0822100111 - Christian Richard\n\nRéférence : ${session.orderId}\n\nTapez 0 pour recommencer.`;
+            response = `*ERREUR DE PAIEMENT*\n\n❌ Système de paiement temporairement indisponible.\n\nVeuillez utiliser le paiement manuel :\n\n*Pour Airtel Money retrait :*\n0990960434 - FADHILI MANASSÉ\n\n*Pour Vodacom M-Pesa :*\n0822100111 - Christian Richard\n\nRéférence : ${session.orderId}\n\nTapez 0 pour recommencer.`;
             session.step = 'payment_complete';
           }
         } else {
