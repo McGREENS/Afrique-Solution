@@ -519,7 +519,8 @@ client.on('message', async (message) => {
           
           response = `*Service choisi : ${serviceNames[services[serviceIndex]]}*\n\nChoisissez votre pays :\n\n1. RD Congo\n2. Rwanda\n3. Burundi\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
         } else {
-          response = 'Veuillez choisir un service valide (1-7).\n\nTapez 0 pour recommencer.';
+          // Show welcome message with service list
+          response = `*Bienvenue chez Afrique Solution*\n\nChoisissez un service :\n\n1. CANAL+\n2. StarTimes\n3. DSTV\n4. VODACOM (unités et forfaits)\n5. Airtel (unités et forfaits)\n6. Orange (unités et forfaits)\n7. Courant SOCODE\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
         }
         break;
         
