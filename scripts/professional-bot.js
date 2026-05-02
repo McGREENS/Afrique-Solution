@@ -729,6 +729,11 @@ client.on('message', async (message) => {
             example = '250781234567';
           }
           
+          // Update example based on service
+          if (session.selectedService === 'vodacom') {
+            example = '0822100111';
+          }
+          
           response = `*Forfait choisi : ${selectedPackage.name} - $${selectedPackage.price}*\n\nVeuillez entrer votre numéro de ${fieldName} :\n\nExemple : ${example}\n\nTapez 0 pour recommencer.`;
         } else {
           response = `Veuillez choisir un forfait valide (1-${packageKeys.length}).\n\nTapez 0 pour recommencer.`;

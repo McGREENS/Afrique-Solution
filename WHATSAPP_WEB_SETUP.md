@@ -163,3 +163,7 @@ Email
 admin@afriquesolution.site
 Password
 Afrique2025!Secure
+
+
+
+<!-- yes there is only ONE dealer (Ets ALI-MOBILE), but his will be applied on on the VODACOM (unités et forfaits)and Courant SOCODE services because are noly in DRC -->
