@@ -766,7 +766,7 @@ client.on('message', async (message) => {
         if (text === '1') {
           // Automatic PawaPay payment
           session.step = 'enter_phone';
-          response = `*PAIEMENT AUTOMATIQUE*\n\nVeuillez entrer votre numéro Mobile Money :\n\nExemple : 250781234567\n\nAssurez-vous d'avoir $${session.selectedPrice} dans votre compte.\n\nTapez 0 pour recommencer.`;
+          response = `*PAIEMENT AUTOMATIQUE*\n\nVeuillez entrer votre numéro Mobile Money :\n\nExemple : 243978993445\n\nAssurez-vous d'avoir $${session.selectedPrice} dans votre compte.\n\nTapez 0 pour recommencer.`;
         } else if (text === '2') {
           // Manual payment instructions
           session.step = 'payment_complete';
@@ -814,7 +814,9 @@ client.on('message', async (message) => {
         break;
         
       default:
-        response = 'Tapez 0 pour recommencer.';
+        // For any unrecognized input, show welcome menu
+        session.step = 'choose_service';
+        response = `*Bienvenue chez Afrique Solution*\n\nChoisissez un service :\n\n1. CANAL+\n2. StarTimes\n3. DSTV\n4. VODACOM (unités et forfaits)\n5. Airtel (unités et forfaits)\n6. Orange (unités et forfaits)\n7. Courant SOCODE\n\nRépondez avec le numéro de votre choix.\n\nTapez 0 pour recommencer.`;
     }
     
     // Save session
