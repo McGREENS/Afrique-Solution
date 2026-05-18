@@ -10,8 +10,8 @@ const SERDIPAY_CONFIG = {
 };
 
 // Cache token to avoid requesting it every time
-let cachedToken = null;
-let tokenExpiry = null;
+let cachedToken: string | null = null;
+let tokenExpiry: number | null = null;
 
 /**
  * Get authentication token from SerdiPay
@@ -55,12 +55,13 @@ export async function getSerdiPayToken() {
 
 /**
  * Initiate C2B payment request
- * @param {string} phone - Customer phone number (243...)
- * @param {number} amount - Amount in USD
- * @param {string} orderId - Unique order reference
- * @param {string} description - Payment description
  */
-export async function initiateSerdiPayPayment(phone, amount, orderId, description) {
+export async function initiateSerdiPayPayment(
+  phone: string,
+  amount: number,
+  orderId: string,
+  description?: string
+) {
   try {
     // Get authentication token
     const token = await getSerdiPayToken();
@@ -76,7 +77,7 @@ export async function initiateSerdiPayPayment(phone, amount, orderId, descriptio
     const paymentData = {
       merchant_code: SERDIPAY_CONFIG.MERCHANT_CODE,
       phone: phone.replace(/[^0-9]/g, ''), // Remove non-numeric characters
-      amount: parseFloat(amount).toFixed(2),
+      amount: amount.toString(),
       reference: orderId,
       description: description || 'Afrique Solution Payment',
       callback_url: SERDIPAY_CONFIG.CALLBACK_URL
@@ -120,7 +121,7 @@ export async function initiateSerdiPayPayment(phone, amount, orderId, descriptio
     console.error('SerdiPay payment error:', error);
     return {
       status: 'FAILED',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }

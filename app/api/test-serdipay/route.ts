@@ -8,7 +8,17 @@ export async function GET() {
   const TOKEN_URL = 'https://serdipay.com/api/public-api/v1/merchant/get-token';
   const C2B_URL = 'https://serdipay.com/api/public-api/v1/merchant/payment-merchant';
 
-  const results = {
+  const results: {
+    timestamp: string;
+    tests: Array<{
+      type: string;
+      attempt?: string;
+      status?: number;
+      request?: any;
+      response?: any;
+      error?: string;
+    }>;
+  } = {
     timestamp: new Date().toISOString(),
     tests: []
   };
