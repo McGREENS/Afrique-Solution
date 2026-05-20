@@ -787,30 +787,14 @@ client.on('message', async (message) => {
           // Send processing message first
           await message.reply(response);
           
-          // Initiate payment (SerdiPay for DRC, PawaPay for others)
+          // Initiate PawaPay payment
           try {
-            const phoneCountry = detectPhoneCountry(session.paymentPhone);
-            let paymentResult;
-            
-            if (phoneCountry === 'drc') {
-              // Use SerdiPay for DRC customers
-              console.log('💳 Using SerdiPay for DRC customer');
-              paymentResult = await initiateSerdiPay(
-                session.selectedPrice,
-                session.paymentPhone,
-                session.orderId,
-                `${session.selectedService} - ${session.selectedPackageName}`
-              );
-            } else {
-              // Use PawaPay for Rwanda/Burundi
-              console.log('💳 Using PawaPay for Rwanda/Burundi customer');
-              paymentResult = await initiatePawaPay(
-                session.selectedPrice,
-                session.paymentPhone,
-                session.orderId,
-                session.selectedRegion
-              );
-            }
+            const paymentResult = await initiatePawaPay(
+              session.selectedPrice,
+              session.paymentPhone,
+              session.orderId,
+              session.selectedRegion
+            );
             
             if (paymentResult && paymentResult.status === 'ACCEPTED') {
               response = `*DEMANDE DE PAIEMENT ENVOYÉE*\n\n✅ Demande de paiement envoyée à ${session.paymentPhone}\n\nVeuillez vérifier votre téléphone et approuver le paiement de $${session.selectedPrice}\n\nID Commande : ${session.orderId}\n\nVotre service sera activé automatiquement après confirmation du paiement.\n\nTapez 0 pour recommencer.`;
@@ -868,60 +852,6 @@ process.on('SIGINT', async () => {
 });
 
 // PawaPay integration - PRODUCTION READY WITH CURRENCY CONVERSION
-
-// Detect country from phone number
-function detectPhoneCountry(phone) {
-  const phoneStr = phone.replace(/[^0-9]/g, '');
-  
-  if (phoneStr.startsWith('250')) {
-    return 'rwanda';
-  } else if (phoneStr.startsWith('243')) {
-    return 'drc';
-  } else if (phoneStr.startsWith('257')) {
-    return 'burundi';
-  }
-  
-  return null;
-}
-
-// SerdiPay integration for DRC customers
-async function initiateSerdiPay(amount, phone, orderId, description) {
-  try {
-    console.log('🔥 SerdiPay Request Details:');
-    console.log('Amount (USD):', amount);
-    console.log('Phone:', phone);
-    console.log('OrderID:', orderId);
-    console.log('Description:', description);
-    
-    // Call Vercel API endpoint to initiate payment
-    const response = await fetch('https://afriquesolution.site/api/serdipay', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        phone: phone,
-        amount: amount,
-        orderId: orderId,
-        description: description
-      })
-    });
-    
-    const result = await response.json();
-    console.log('🔥 SerdiPay API Response:', JSON.stringify(result, null, 2));
-    
-    if (result.success && result.status === 'ACCEPTED') {
-      return { status: 'ACCEPTED', ...result };
-    } else {
-      console.error('❌ SerdiPay API Error:', result);
-      return { status: 'FAILED', error: result.error || 'Payment failed' };
-    }
-  } catch (error) {
-    console.error('❌ SerdiPay Network Error:', error);
-    return { status: 'FAILED', error: error.message };
-  }
-}
-
 async function initiatePawaPay(amount, phone, orderId, country) {
   try {
     console.log('🔥 PawaPay Request Details:');
