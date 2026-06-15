@@ -46,10 +46,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const currentUser = user.rows[0] as { id: string; password_hash: string };
+    const row = user.rows[0];
+    const userId = String(row.id);
+    const storedPasswordHash = String(row.password_hash);
     const currentPasswordHash = hashAdminPassword(currentPassword);
 
-    if (currentPasswordHash !== currentUser.password_hash) {
+    if (currentPasswordHash !== storedPasswordHash) {
       return NextResponse.json(
         { error: "Current password is incorrect" },
         { status: 400 }
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
 
     await db.execute({
       sql: "UPDATE admin_users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-      args: [newPasswordHash, currentUser.id],
+      args: [newPasswordHash, userId],
     });
 
     return NextResponse.json({ message: "Password changed successfully" });
