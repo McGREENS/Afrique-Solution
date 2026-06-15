@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/client";
+import { isAdminSession } from "@/lib/admin-auth";
 
 export async function GET(req: NextRequest) {
   try {
     const session = req.cookies.get("admin_session");
-    if (session?.value !== "authenticated") {
+    if (!isAdminSession(session?.value)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

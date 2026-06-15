@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/client";
+import { isAdminSession } from "@/lib/admin-auth";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     const response = NextResponse.json({ success: true });
-    response.cookies.set("admin_session", "authenticated", {
+    response.cookies.set("admin_session", email, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const session = req.cookies.get("admin_session");
 
-  if (session?.value === "authenticated") {
+  if (isAdminSession(session?.value)) {
     return NextResponse.json({ authenticated: true });
   }
 

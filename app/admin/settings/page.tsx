@@ -6,7 +6,8 @@ import { User, Lock, Save } from "lucide-react";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [profileData, setProfileData] = useState({
     name: "",
@@ -46,7 +47,7 @@ export default function SettingsPage() {
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    setSavingProfile(true);
     setMessage({ type: "", text: "" });
 
     try {
@@ -66,24 +67,24 @@ export default function SettingsPage() {
     } catch (error) {
       setMessage({ type: "error", text: "An error occurred" });
     } finally {
-      setSaving(false);
+      setSavingProfile(false);
     }
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    setSavingPassword(true);
     setMessage({ type: "", text: "" });
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setMessage({ type: "error", text: "New passwords do not match" });
-      setSaving(false);
+      setSavingPassword(false);
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
       setMessage({ type: "error", text: "Password must be at least 6 characters" });
-      setSaving(false);
+      setSavingPassword(false);
       return;
     }
 
@@ -108,7 +109,7 @@ export default function SettingsPage() {
     } catch (error) {
       setMessage({ type: "error", text: "An error occurred" });
     } finally {
-      setSaving(false);
+      setSavingPassword(false);
     }
   };
 
@@ -376,9 +377,9 @@ export default function SettingsPage() {
                 required
               />
             </div>
-            <button type="submit" className="btn" disabled={saving}>
+            <button type="submit" className="btn" disabled={savingProfile}>
               <Save size={18} />
-              {saving ? "Saving..." : "Save Changes"}
+              {savingProfile ? "Saving..." : "Save Changes"}
             </button>
           </form>
         </div>
@@ -420,9 +421,9 @@ export default function SettingsPage() {
                 required
               />
             </div>
-            <button type="submit" className="btn" disabled={saving}>
+            <button type="submit" className="btn" disabled={savingPassword}>
               <Lock size={18} />
-              {saving ? "Changing..." : "Change Password"}
+              {savingPassword ? "Changing..." : "Change Password"}
             </button>
           </form>
         </div>
