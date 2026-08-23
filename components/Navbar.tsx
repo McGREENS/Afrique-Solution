@@ -1,31 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Menu, X, MessageCircle } from "lucide-react";
+import { Menu, X, MessageCircle, Smartphone } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
 
-const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "+243000000000";
+const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "+243822100111";
 const WA_LINK = `https://wa.me/${WA_NUMBER.replace(/\D/g, "")}`;
 
 const navItems = {
   fr: [
-    { label: "Services", href: "#services" },
+    { label: "Services",          href: "#services" },
     { label: "Comment ça marche", href: "#how" },
-    { label: "Pays", href: "#countries" },
-    { label: "Contact", href: "#contact" },
+    { label: "Pays",              href: "#countries" },
+    { label: "Contact",           href: "#contact" },
   ],
   en: [
-    { label: "Services", href: "#services" },
+    { label: "Services",    href: "#services" },
     { label: "How it works", href: "#how" },
-    { label: "Countries", href: "#countries" },
-    { label: "Contact", href: "#contact" },
+    { label: "Countries",   href: "#countries" },
+    { label: "Contact",     href: "#contact" },
   ],
+};
+
+const copy = {
+  appBadge: { fr: "App bientôt", en: "App soon" },
+  whatsapp: { fr: "WhatsApp",    en: "WhatsApp" },
 };
 
 export default function Navbar() {
   const { lang, setLang } = useLang();
   const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]         = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -41,6 +46,7 @@ export default function Navbar() {
 
   const close = () => setOpen(false);
   const items = navItems[lang];
+  const t     = (obj: { fr: string; en: string }) => obj[lang];
 
   return (
     <header
@@ -54,15 +60,15 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-4 md:px-12">
 
         {/* Logo */}
-        <a href="#" className="flex items-center gap-2" onClick={close}>
-          <span className="text-[22px] leading-none">✦</span>
-          <span className="text-[24px] font-medium tracking-tight text-[#11111a]">
+        <a href="/" className="flex items-center gap-2" onClick={close}>
+          <span className="text-[22px] leading-none text-[#b4f75f]">✦</span>
+          <span className="text-[22px] font-medium tracking-tight text-[#11111a]">
             Afrique Solution
           </span>
         </a>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-8 text-[16px] md:flex">
+        <nav className="hidden items-center gap-7 text-[15px] md:flex">
           {items.map((item) => (
             <a
               key={item.href}
@@ -73,15 +79,22 @@ export default function Navbar() {
             </a>
           ))}
 
+          {/* App badge — coming soon */}
+          <a
+            href="#app"
+            className="inline-flex items-center gap-2 rounded-full border border-[#b4f75f] bg-[#b4f75f]/10 px-4 py-1.5 text-[13px] font-semibold text-[#11111a] transition-colors hover:bg-[#b4f75f]/25"
+          >
+            <Smartphone size={13} strokeWidth={2.5} />
+            {t(copy.appBadge)}
+          </a>
+
           {/* Language toggle */}
-          <div className="flex items-center rounded-xl border border-[#d0d0d0] overflow-hidden text-[14px] font-medium">
+          <div className="flex items-center overflow-hidden rounded-xl border border-[#d0d0d0] text-[13px] font-medium">
             <button
               onClick={() => setLang("fr")}
               className={[
                 "px-3 py-2 transition-colors",
-                lang === "fr"
-                  ? "bg-[#11111a] text-white"
-                  : "text-[#11111a] hover:bg-black/5",
+                lang === "fr" ? "bg-[#11111a] text-white" : "text-[#11111a] hover:bg-black/5",
               ].join(" ")}
             >
               FR
@@ -90,9 +103,7 @@ export default function Navbar() {
               onClick={() => setLang("en")}
               className={[
                 "px-3 py-2 transition-colors",
-                lang === "en"
-                  ? "bg-[#11111a] text-white"
-                  : "text-[#11111a] hover:bg-black/5",
+                lang === "en" ? "bg-[#11111a] text-white" : "text-[#11111a] hover:bg-black/5",
               ].join(" ")}
             >
               EN
@@ -103,23 +114,21 @@ export default function Navbar() {
             href={WA_LINK}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-2xl border border-[#303030] px-5 py-2.5 text-[15px] text-[#11111a] transition-colors hover:bg-[#303030] hover:text-white"
+            className="inline-flex items-center gap-2 rounded-2xl border border-[#303030] px-5 py-2.5 text-[14px] font-medium text-[#11111a] transition-colors hover:bg-[#303030] hover:text-white"
           >
-            <MessageCircle size={16} strokeWidth={2} />
-            WhatsApp
+            <MessageCircle size={15} strokeWidth={2} />
+            {t(copy.whatsapp)}
           </a>
         </nav>
 
-        {/* Mobile: language toggle + hamburger */}
+        {/* Mobile: lang + hamburger */}
         <div className="flex items-center gap-3 md:hidden">
-          <div className="flex items-center rounded-xl border border-[#d0d0d0] overflow-hidden text-[14px] font-medium">
+          <div className="flex items-center overflow-hidden rounded-xl border border-[#d0d0d0] text-[13px] font-medium">
             <button
               onClick={() => setLang("fr")}
               className={[
                 "px-3 py-1.5 transition-colors",
-                lang === "fr"
-                  ? "bg-[#11111a] text-white"
-                  : "text-[#11111a] hover:bg-black/5",
+                lang === "fr" ? "bg-[#11111a] text-white" : "text-[#11111a] hover:bg-black/5",
               ].join(" ")}
             >
               FR
@@ -128,9 +137,7 @@ export default function Navbar() {
               onClick={() => setLang("en")}
               className={[
                 "px-3 py-1.5 transition-colors",
-                lang === "en"
-                  ? "bg-[#11111a] text-white"
-                  : "text-[#11111a] hover:bg-black/5",
+                lang === "en" ? "bg-[#11111a] text-white" : "text-[#11111a] hover:bg-black/5",
               ].join(" ")}
             >
               EN
@@ -156,19 +163,30 @@ export default function Navbar() {
                 key={item.href}
                 href={item.href}
                 onClick={close}
-                className="rounded-xl px-4 py-3 text-[18px] font-medium text-[#11111a] transition-colors hover:bg-black/5"
+                className="rounded-xl px-4 py-3 text-[17px] font-medium text-[#11111a] transition-colors hover:bg-black/5"
               >
                 {item.label}
               </a>
             ))}
+
+            {/* App badge mobile */}
+            <a
+              href="#app"
+              onClick={close}
+              className="mt-1 flex items-center gap-2 rounded-xl border border-[#b4f75f] bg-[#b4f75f]/10 px-4 py-3 text-[17px] font-semibold text-[#11111a]"
+            >
+              <Smartphone size={18} strokeWidth={2} />
+              {t(copy.appBadge)}
+            </a>
+
             <a
               href={WA_LINK}
               target="_blank"
               rel="noopener noreferrer"
               onClick={close}
-              className="mt-3 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-6 py-3 text-[18px] font-medium text-white transition-opacity hover:opacity-90"
+              className="mt-2 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-6 py-3 text-[17px] font-medium text-white transition-opacity hover:opacity-90"
             >
-              <MessageCircle size={20} strokeWidth={2} />
+              <MessageCircle size={19} strokeWidth={2} />
               WhatsApp
             </a>
           </nav>

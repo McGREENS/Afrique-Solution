@@ -1,649 +1,392 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import AdminLayout from "@/components/AdminLayout";
-import { 
-  Plus,
-  ExternalLink,
-  DollarSign,
-  Trash2
+import { useEffect, useState, useCallback, useRef } from "react";
+import {
+  Search, RefreshCw, ChevronLeft, ChevronRight,
+  CheckCircle, XCircle, Clock, AlertCircle, Copy, Check,
 } from "lucide-react";
 
-interface Payment {
-  id: string;
-  service: string;
-  package_name: string;
-  amount: number;
-  phone: string;
-  created_at: string;
+interface Order {
+  id:                    string;
+  subscriber_id:         string;
+  service_id:            string;
+  service_name:          string;
+  service_provider:      string;
+  country_id:            string | null;
+  amount_usd:            number;
+  payer_phone:           string;
+  recipient_detail:      string | null;
+  status:                string;
+  created_at:            string;
+  transaction_reference: string | null;
+}
+
+interface OrdersResponse {
+  orders: Order[];
+  total:  number;
+  page:   number;
+  limit:  number;
+  pages:  number;
+}
+
+const CARD_BG  = "#161a2a";
+const BORDER   = "rgba(255,255,255,0.07)";
+const MUTED    = "rgba(255,255,255,0.35)";
+const TEXT     = "#fff";
+const ACCENT   = "#b4f75f";
+const DARK_BG  = "#0d1018";
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
+  COMPLETED: { label: "Complété",  color: "#86efac", bg: "rgba(134,239,172,0.12)", icon: CheckCircle },
+  FAILED:    { label: "Échoué",    color: "#f87171", bg: "rgba(248,113,113,0.12)", icon: XCircle     },
+  CANCELLED: { label: "Annulé",    color: "#fbbf24", bg: "rgba(251,191,36,0.12)",  icon: AlertCircle },
+  PENDING:   { label: "En attente",color: "#94a3b8", bg: "rgba(148,163,184,0.12)", icon: Clock       },
+};
+
+function StatusBadge({ status }: { status: string }) {
+  const cfg = STATUS_CONFIG[status.toUpperCase()] ?? STATUS_CONFIG.PENDING;
+  const Icon = cfg.icon;
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: "5px",
+      background: cfg.bg, color: cfg.color,
+      borderRadius: "999px", padding: "3px 10px",
+      fontSize: "12px", fontWeight: 600, whiteSpace: "nowrap",
+    }}>
+      <Icon size={12} strokeWidth={2.5} />
+      {cfg.label}
+    </span>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <button
+      onClick={copy}
+      title="Copier"
+      style={{
+        background: "none", border: "none", cursor: "pointer",
+        padding: "2px", color: copied ? ACCENT : "rgba(255,255,255,0.25)",
+        display: "inline-flex", alignItems: "center",
+      }}
+    >
+      {copied ? <Check size={12} /> : <Copy size={12} />}
+    </button>
+  );
+}
+
+function formatDate(str: string) {
+  try {
+    const d = new Date(str);
+    return d.toLocaleString("fr-FR", {
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
+  } catch {
+    return str;
+  }
+}
+
+function shortId(id: string) {
+  return id.length > 16 ? `${id.slice(0, 8)}…${id.slice(-4)}` : id;
 }
 
 export default function PaymentsPage() {
-  const [payments, setPayments] = useState<Payment[]>([]);
+  const [data,    setData]    = useState<OrdersResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    service: "",
-    package_name: "",
-    amount: "",
-    phone: ""
-  });
-  const [submitting, setSubmitting] = useState(false);
+  const [error,   setError]   = useState<string | null>(null);
+  const [page,    setPage]    = useState(1);
+  const [search,  setSearch]  = useState("");
+  const [inputVal, setInputVal] = useState("");
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    fetchPayments();
-  }, []);
-
-  const fetchPayments = async () => {
+  const load = useCallback(async (p: number, q: string) => {
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch("/api/admin/payments");
-      if (res.ok) {
-        const data = await res.json();
-        setPayments(data.payments);
-      }
-    } catch (error) {
-      console.error("Failed to fetch payments:", error);
+      const params = new URLSearchParams({ page: String(p), limit: "20" });
+      if (q) params.set("search", q);
+      const res = await fetch(`/api/admin/orders?${params}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setData(await res.json());
+    } catch (e) {
+      setError("Impossible de charger les paiements.");
+      console.error(e);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+  useEffect(() => { load(page, search); }, [load, page, search]);
 
-    try {
-      const res = await fetch("/api/admin/payments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      });
-
-      if (res.ok) {
-        setFormData({ service: "", package_name: "", amount: "", phone: "" });
-        setShowForm(false);
-        fetchPayments();
-      }
-    } catch (error) {
-      console.error("Failed to add payment:", error);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this payment?")) return;
-
-    try {
-      const res = await fetch(`/api/admin/payments?id=${id}`, {
-        method: "DELETE"
-      });
-
-      if (res.ok) {
-        fetchPayments();
-      }
-    } catch (error) {
-      console.error("Failed to delete payment:", error);
-    }
-  };
-
-  const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
-
-  if (loading) {
-    return (
-      <AdminLayout>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "400px" }}>
-          <div style={{ fontSize: "20px", fontWeight: 500, color: "#11111a" }}>Loading...</div>
-        </div>
-      </AdminLayout>
-    );
+  // Debounced search input
+  function handleSearchInput(val: string) {
+    setInputVal(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearch(val);
+      setPage(1);
+    }, 400);
   }
 
+  const orders = data?.orders ?? [];
+  const total  = data?.total  ?? 0;
+  const pages  = data?.pages  ?? 1;
+
   return (
-    <AdminLayout>
-      <style jsx>{`
-        .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 24px;
-          flex-wrap: wrap;
-          gap: 12px;
-        }
+    <div style={{ background: DARK_BG, minHeight: "100%", color: TEXT }}>
 
-        @media (min-width: 640px) {
-          .header {
-            align-items: center;
-            margin-bottom: 28px;
-            gap: 16px;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .header {
-            margin-bottom: 32px;
-          }
-        }
-
-        .section-header {
-          display: inline-block;
-          border-radius: 6px;
-          background: #b4f75f;
-          padding: 4px 8px;
-          font-size: 22px;
-          font-weight: 500;
-          color: #11111a;
-        }
-
-        @media (min-width: 640px) {
-          .section-header {
-            font-size: 26px;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .section-header {
-            font-size: 28px;
-          }
-        }
-
-        .header-buttons {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          width: 100%;
-        }
-
-        @media (min-width: 640px) {
-          .header-buttons {
-            gap: 12px;
-            width: auto;
-          }
-        }
-
-        .btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          padding: 10px 16px;
-          border: 2px solid #11111a;
-          border-radius: 12px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-          box-shadow: 0 3px 0 #11111a;
-          text-decoration: none;
-          white-space: nowrap;
-          flex: 1;
-        }
-
-        @media (min-width: 640px) {
-          .btn {
-            padding: 12px 20px;
-            font-size: 15px;
-            gap: 8px;
-            flex: 0;
-          }
-        }
-
-        .btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 5px 0 #11111a;
-        }
-
-        .btn:active {
-          transform: translateY(1px);
-          box-shadow: 0 2px 0 #11111a;
-        }
-
-        .btn-primary {
-          background: #b4f75f;
-          color: #11111a;
-        }
-
-        .btn-secondary {
-          background: white;
-          color: #11111a;
-        }
-
-        .stats-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-
-        @media (min-width: 640px) {
-          .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 28px;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .stats-grid {
-            margin-bottom: 32px;
-          }
-        }
-
-        .stat-card {
-          background: white;
-          border-radius: 16px;
-          border: 1px solid #11111a;
-          box-shadow: 0 3px 0 #11111a;
-          padding: 20px;
-        }
-
-        @media (min-width: 640px) {
-          .stat-card {
-            border-radius: 20px;
-            padding: 24px;
-          }
-        }
-
-        .stat-value {
-          font-size: 28px;
-          font-weight: 600;
-          margin-bottom: 4px;
-          line-height: 1;
-        }
-
-        @media (min-width: 640px) {
-          .stat-value {
-            font-size: 32px;
-          }
-        }
-
-        .stat-label {
-          font-size: 13px;
-          color: #343438;
-        }
-
-        @media (min-width: 640px) {
-          .stat-label {
-            font-size: 14px;
-          }
-        }
-
-        .form-modal {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          padding: 16px;
-        }
-
-        @media (min-width: 640px) {
-          .form-modal {
-            padding: 20px;
-          }
-        }
-
-        .form-container {
-          background: white;
-          border-radius: 20px;
-          border: 2px solid #11111a;
-          box-shadow: 0 8px 0 #11111a;
-          padding: 24px;
-          max-width: 500px;
-          width: 100%;
-          max-height: 90vh;
-          overflow-y: auto;
-        }
-
-        @media (min-width: 640px) {
-          .form-container {
-            border-radius: 24px;
-            padding: 32px;
-          }
-        }
-
-        .form-title {
-          font-size: 20px;
-          font-weight: 600;
-          color: #11111a;
-          margin-bottom: 20px;
-        }
-
-        @media (min-width: 640px) {
-          .form-title {
-            font-size: 24px;
-            margin-bottom: 24px;
-          }
-        }
-
-        .form-group {
-          margin-bottom: 16px;
-        }
-
-        @media (min-width: 640px) {
-          .form-group {
-            margin-bottom: 20px;
-          }
-        }
-
-        .form-label {
-          display: block;
-          font-size: 13px;
-          font-weight: 600;
-          color: #11111a;
-          margin-bottom: 6px;
-        }
-
-        @media (min-width: 640px) {
-          .form-label {
-            font-size: 14px;
-            margin-bottom: 8px;
-          }
-        }
-
-        .form-input, .form-select {
-          width: 100%;
-          padding: 10px 14px;
-          border: 2px solid #11111a;
-          border-radius: 12px;
-          font-size: 15px;
-          outline: none;
-        }
-
-        @media (min-width: 640px) {
-          .form-input, .form-select {
-            padding: 12px 16px;
-          }
-        }
-
-        .form-input:focus, .form-select:focus {
-          border-color: #b4f75f;
-          box-shadow: 0 0 0 3px rgba(180, 247, 95, 0.2);
-        }
-
-        .form-actions {
-          display: flex;
-          gap: 10px;
-          margin-top: 20px;
-        }
-
-        @media (min-width: 640px) {
-          .form-actions {
-            gap: 12px;
-            margin-top: 24px;
-          }
-        }
-
-        .payments-table {
-          background: white;
-          border-radius: 20px;
-          border: 1px solid #11111a;
-          box-shadow: 0 4px 0 #11111a;
-          overflow: hidden;
-        }
-
-        @media (min-width: 640px) {
-          .payments-table {
-            border-radius: 24px;
-          }
-        }
-
-        .table-wrapper {
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-
-        .table {
-          width: 100%;
-          border-collapse: collapse;
-          min-width: 600px;
-        }
-
-        .table thead {
-          background: #f3f3f3;
-        }
-
-        .table th {
-          text-align: left;
-          padding: 12px 16px;
-          font-size: 13px;
-          font-weight: 600;
-          color: #11111a;
-          border-bottom: 1px solid #11111a;
-          white-space: nowrap;
-        }
-
-        @media (min-width: 640px) {
-          .table th {
-            padding: 16px 20px;
-            font-size: 14px;
-          }
-        }
-
-        .table td {
-          padding: 12px 16px;
-          font-size: 13px;
-          border-bottom: 1px solid #e5e5e5;
-        }
-
-        @media (min-width: 640px) {
-          .table td {
-            padding: 16px 20px;
-            font-size: 14px;
-          }
-        }
-
-        .table tbody tr:last-child td {
-          border-bottom: none;
-        }
-
-        .table tbody tr:hover {
-          background: #f9f9f9;
-        }
-
-        .delete-btn {
-          background: none;
-          border: none;
-          color: #ef4444;
-          cursor: pointer;
-          padding: 4px;
-          display: inline-flex;
-          align-items: center;
-        }
-
-        .delete-btn:hover {
-          color: #dc2626;
-        }
-
-        .empty-state {
-          text-align: center;
-          padding: 40px 20px;
-          color: #343438;
-        }
-
-        @media (min-width: 640px) {
-          .empty-state {
-            padding: 60px 20px;
-          }
-        }
-      `}</style>
-
-      <div className="header">
-        <h2 className="section-header">Payment Tracking</h2>
-        <div className="header-buttons">
-          <a
-            href="https://dashboard.pawapay.io/#/login"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-secondary"
-          >
-            <ExternalLink size={18} />
-            See New Payments
-          </a>
-          <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-            <Plus size={18} />
-            Add Payment
-          </button>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "24px", flexWrap: "wrap", gap: "12px" }}>
+        <div>
+          <h1 style={{ fontSize: "22px", fontWeight: 700, color: TEXT, marginBottom: "4px" }}>Paiements</h1>
+          <p style={{ fontSize: "13px", color: MUTED }}>
+            {loading ? "Chargement…" : `${total.toLocaleString("fr-FR")} transaction${total !== 1 ? "s" : ""} au total`}
+          </p>
         </div>
+        <button
+          onClick={() => load(page, search)}
+          disabled={loading}
+          style={{
+            display: "flex", alignItems: "center", gap: "6px",
+            background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+            borderRadius: "10px", padding: "8px 14px",
+            fontSize: "13px", color: loading ? MUTED : TEXT,
+            cursor: loading ? "not-allowed" : "pointer",
+          }}
+        >
+          <RefreshCw size={14} style={{ animation: loading ? "spin 1s linear infinite" : "none" }} />
+          Actualiser
+        </button>
       </div>
 
-      {/* Stats */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: "#11111a" }}>{payments.length}</div>
-          <div className="stat-label">Total Payments</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value" style={{ color: "#10b981" }}>${totalRevenue.toFixed(2)}</div>
-          <div className="stat-label">Total Revenue</div>
-        </div>
+      {/* Search bar */}
+      <div style={{
+        position: "relative", marginBottom: "16px",
+      }}>
+        <Search size={15} style={{
+          position: "absolute", left: "14px", top: "50%",
+          transform: "translateY(-50%)", color: MUTED, pointerEvents: "none",
+        }} />
+        <input
+          type="text"
+          placeholder="Rechercher par ID, téléphone, service, statut…"
+          value={inputVal}
+          onChange={(e) => handleSearchInput(e.target.value)}
+          style={{
+            width: "100%", padding: "10px 14px 10px 40px",
+            background: CARD_BG, border: `1px solid ${BORDER}`,
+            borderRadius: "12px", fontSize: "14px",
+            color: TEXT, outline: "none",
+            boxSizing: "border-box",
+          }}
+        />
       </div>
 
-      {/* Payments Table */}
-      <div className="payments-table">
-        {payments.length === 0 ? (
-          <div className="empty-state">
-            <DollarSign size={48} color="#11111a" style={{ opacity: 0.3, margin: "0 auto 16px" }} />
-            <p style={{ fontSize: "18px", marginBottom: "8px" }}>No payments recorded yet</p>
-            <p style={{ fontSize: "14px" }}>
-              Click "Add Payment" to manually record a payment
-            </p>
+      {error && (
+        <div style={{
+          background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)",
+          borderRadius: "14px", padding: "14px 18px", marginBottom: "16px",
+          fontSize: "14px", color: "#fca5a5",
+        }}>
+          {error}
+        </div>
+      )}
+
+      {/* Table */}
+      <div style={{
+        background: CARD_BG, border: `1px solid ${BORDER}`,
+        borderRadius: "20px", overflow: "hidden",
+      }}>
+
+        {/* Table header */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 120px 120px 110px 110px 140px",
+          padding: "12px 20px",
+          borderBottom: `1px solid ${BORDER}`,
+          gap: "12px",
+        }}
+          className="payments-header"
+        >
+          {["ID / Service", "Téléphone", "Montant", "Statut", "Pays", "Date"].map((h) => (
+            <span key={h} style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: MUTED }}>
+              {h}
+            </span>
+          ))}
+        </div>
+
+        {/* Rows */}
+        {loading && orders.length === 0 ? (
+          <div style={{ padding: "48px", textAlign: "center", color: MUTED, fontSize: "14px" }}>
+            Chargement…
+          </div>
+        ) : orders.length === 0 ? (
+          <div style={{ padding: "48px", textAlign: "center", color: MUTED, fontSize: "14px" }}>
+            {search ? "Aucun résultat pour cette recherche." : "Aucun paiement enregistré."}
           </div>
         ) : (
-          <div className="table-wrapper">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Service</th>
-                  <th>Package</th>
-                  <th>Amount</th>
-                  <th>Phone Number</th>
-                  <th>Date</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((payment) => (
-                  <tr key={payment.id}>
-                    <td style={{ fontWeight: 500 }}>{payment.service}</td>
-                    <td style={{ color: "#343438" }}>{payment.package_name}</td>
-                    <td style={{ fontWeight: 600, color: "#10b981" }}>${payment.amount}</td>
-                    <td style={{ fontFamily: "monospace" }}>{payment.phone}</td>
-                    <td style={{ color: "#343438" }}>
-                      {new Date(payment.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </td>
-                    <td>
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDelete(payment.id)}
-                        title="Delete payment"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          orders.map((order) => {
+            const isOpen = expanded === order.id;
+            return (
+              <div key={order.id}>
+                {/* Main row */}
+                <div
+                  onClick={() => setExpanded(isOpen ? null : order.id)}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 120px 120px 110px 110px 140px",
+                    padding: "14px 20px",
+                    gap: "12px",
+                    borderBottom: `1px solid ${BORDER}`,
+                    cursor: "pointer",
+                    background: isOpen ? "rgba(255,255,255,0.03)" : "transparent",
+                    transition: "background 120ms",
+                    alignItems: "center",
+                  }}
+                  className="payments-row"
+                >
+                  {/* ID / Service */}
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ fontSize: "12px", fontFamily: "monospace", color: "rgba(255,255,255,0.5)" }}>
+                        {shortId(order.id)}
+                      </span>
+                      <CopyButton text={order.id} />
+                    </div>
+                    <span style={{ fontSize: "14px", fontWeight: 600, color: TEXT }}>
+                      {order.service_name}
+                    </span>
+                    <span style={{ fontSize: "12px", color: MUTED, marginLeft: "6px" }}>
+                      {order.service_provider}
+                    </span>
+                  </div>
+
+                  {/* Phone */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{ fontSize: "13px", color: TEXT, fontFamily: "monospace" }}>
+                      {order.payer_phone}
+                    </span>
+                  </div>
+
+                  {/* Amount */}
+                  <span style={{ fontSize: "14px", fontWeight: 700, color: ACCENT }}>
+                    ${Number(order.amount_usd).toFixed(2)}
+                  </span>
+
+                  {/* Status */}
+                  <StatusBadge status={order.status} />
+
+                  {/* Country */}
+                  <span style={{ fontSize: "13px", color: MUTED, textTransform: "uppercase" }}>
+                    {order.country_id ?? "—"}
+                  </span>
+
+                  {/* Date */}
+                  <span style={{ fontSize: "12px", color: MUTED }}>
+                    {formatDate(order.created_at)}
+                  </span>
+                </div>
+
+                {/* Expanded detail row */}
+                {isOpen && (
+                  <div style={{
+                    background: "rgba(255,255,255,0.02)",
+                    borderBottom: `1px solid ${BORDER}`,
+                    padding: "16px 20px 20px",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                    gap: "16px",
+                  }}>
+                    {[
+                      { label: "ID Transaction",   value: order.transaction_reference ?? order.id },
+                      { label: "Abonné ID",         value: order.subscriber_id },
+                      { label: "Service ID",        value: order.service_id },
+                      { label: "Numéro décodeur",   value: order.recipient_detail ?? "—" },
+                      { label: "Montant (USD)",     value: `$${Number(order.amount_usd).toFixed(2)}` },
+                      { label: "Statut",            value: order.status },
+                    ].map((field) => (
+                      <div key={field.label}>
+                        <p style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: MUTED, marginBottom: "4px" }}>
+                          {field.label}
+                        </p>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <p style={{ fontSize: "13px", color: TEXT, fontFamily: field.label.includes("ID") ? "monospace" : "inherit", wordBreak: "break-all" }}>
+                            {field.value}
+                          </p>
+                          {field.label.includes("ID") && field.value !== "—" && (
+                            <CopyButton text={field.value} />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+
+        {/* Pagination */}
+        {pages > 1 && (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "14px 20px", borderTop: `1px solid ${BORDER}`,
+            flexWrap: "wrap", gap: "12px",
+          }}>
+            <span style={{ fontSize: "13px", color: MUTED }}>
+              Page {page} / {pages} — {total.toLocaleString("fr-FR")} résultats
+            </span>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1 || loading}
+                style={{
+                  display: "flex", alignItems: "center", gap: "4px",
+                  padding: "6px 12px", borderRadius: "8px",
+                  background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                  fontSize: "13px", color: page === 1 ? MUTED : TEXT,
+                  cursor: page === 1 ? "not-allowed" : "pointer",
+                }}
+              >
+                <ChevronLeft size={14} /> Précédent
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(pages, p + 1))}
+                disabled={page === pages || loading}
+                style={{
+                  display: "flex", alignItems: "center", gap: "4px",
+                  padding: "6px 12px", borderRadius: "8px",
+                  background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                  fontSize: "13px", color: page === pages ? MUTED : TEXT,
+                  cursor: page === pages ? "not-allowed" : "pointer",
+                }}
+              >
+                Suivant <ChevronRight size={14} />
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Add Payment Form Modal */}
-      {showForm && (
-        <div className="form-modal" onClick={() => setShowForm(false)}>
-          <div className="form-container" onClick={(e) => e.stopPropagation()}>
-            <h3 className="form-title">Add Payment</h3>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label className="form-label">Service</label>
-                <select
-                  className="form-select"
-                  value={formData.service}
-                  onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-                  required
-                >
-                  <option value="">Select service...</option>
-                  <option value="Canal+">Canal+</option>
-                  <option value="StarTimes">StarTimes</option>
-                  <option value="DSTV">DSTV</option>
-                  <option value="Vodacom">Vodacom</option>
-                  <option value="Airtel">Airtel</option>
-                  <option value="Orange">Orange</option>
-                  <option value="SOCODE">SOCODE Electricity</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Package Name</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g., ACCES, 1GB Data, etc."
-                  value={formData.package_name}
-                  onChange={(e) => setFormData({ ...formData, package_name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Amount (USD)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  className="form-input"
-                  placeholder="0.00"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Phone Number</label>
-                <input
-                  type="tel"
-                  className="form-input"
-                  placeholder="250781234567"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowForm(false)}
-                  style={{ flex: 1 }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={submitting}
-                  style={{ flex: 1 }}
-                >
-                  {submitting ? "Adding..." : "Add Payment"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </AdminLayout>
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @media (max-width: 768px) {
+          .payments-header { display: none !important; }
+          .payments-row {
+            grid-template-columns: 1fr 1fr !important;
+            grid-template-rows: auto auto auto !important;
+          }
+        }
+      `}</style>
+    </div>
   );
 }

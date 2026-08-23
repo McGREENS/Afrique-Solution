@@ -1,39 +1,78 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOrderById, updateOrderStatus, getUser } from "@/lib/db/queries";
-import { sendText } from "@/lib/whatsapp/sender";
-import { t } from "@/lib/whatsapp/messages";
+import { updateOrderStatus } from "@/lib/turso";
 
-// PawaPay sends deposit callbacks with:
-// { depositId, status: "COMPLETED" | "FAILED", clientReferenceId, ... }
+/**
+ * POST /api/payment/callback
+ *
+ * Receives deposit status callbacks from PawaPay.
+ * PawaPay sends this when a payment reaches a final status:
+ * COMPLETED, FAILED, or CANCELLED.
+ *
+ * Payload shape (PawaPay v1 callback):
+ * {
+ *   depositId:     string,         // our transaction id
+ *   status:        string,         // COMPLETED | FAILED | CANCELLED
+ *   amount:        string,
+ *   currency:      string,
+ *   correspondent: string,
+ *   payer:         { type: string, address: { value: string } },
+ *   customerTimestamp:  string,
+ *   statementDescription: string,
+ *   created:       string,
+ *   depositedAmount?: string,      // present on COMPLETED
+ *   failureReason?: {              // present on FAILED/CANCELLED
+ *     failureCode:    string,
+ *     failureMessage: string,
+ *   }
+ * }
+ *
+ * We must respond with HTTP 200 quickly — PawaPay retries on non-200.
+ */
+
+// Terminal statuses we accept from PawaPay
+const TERMINAL_STATUSES = new Set(["COMPLETED", "FAILED", "CANCELLED"]);
+
 export async function POST(req: NextRequest) {
-  const body = await req.json();
+  let body: Record<string, unknown>;
 
-  const { status, clientReferenceId } = body;
-
-  if (!clientReferenceId) return NextResponse.json({ ok: true });
-
-  const order = await getOrderById(clientReferenceId);
-  if (!order) return NextResponse.json({ ok: true });
-
-  const phone = order.user_id as string;
-  const session = await getUser(phone);
-  const lang = session?.language ?? "fr";
-
-  if (status === "COMPLETED") {
-    await updateOrderStatus(clientReferenceId, "paid");
-    await sendText(phone, t("done", lang));
-  } else if (status === "FAILED") {
-    await updateOrderStatus(clientReferenceId, "failed");
-    await sendText(
-      phone,
-      lang === "fr"
-        ? "Votre paiement a échoué. Tapez *menu* pour réessayer."
-        : "Your payment failed. Type *menu* to try again."
-    );
-    await getUser(phone) && await import("@/lib/db/queries").then(q =>
-      q.upsertUser({ phone, step: "choose_payment" })
-    );
+  try {
+    body = await req.json();
+  } catch {
+    // Malformed body — respond 200 anyway so PawaPay doesn't retry endlessly
+    console.error("[callback] Failed to parse request body");
+    return NextResponse.json({ received: true }, { status: 200 });
   }
 
-  return NextResponse.json({ ok: true });
+  const depositId = typeof body.depositId === "string" ? body.depositId : null;
+  const status    = typeof body.status    === "string" ? body.status.toUpperCase() : null;
+
+  console.log("[callback] Received:", { depositId, status });
+
+  // Validate required fields
+  if (!depositId || !status) {
+    console.error("[callback] Missing depositId or status:", body);
+    return NextResponse.json({ received: true }, { status: 200 });
+  }
+
+  // Only process terminal statuses
+  if (!TERMINAL_STATUSES.has(status)) {
+    // Non-terminal (e.g. ACCEPTED, SUBMITTED) — acknowledge but don't update
+    console.log("[callback] Non-terminal status, skipping DB update:", status);
+    return NextResponse.json({ received: true }, { status: 200 });
+  }
+
+  try {
+    await updateOrderStatus(depositId, status);
+    console.log("[callback] Updated order", depositId, "→", status);
+  } catch (e) {
+    // Log but still return 200 — PawaPay should not retry due to our DB errors
+    console.error("[callback] DB update failed for", depositId, e);
+  }
+
+  return NextResponse.json({ received: true }, { status: 200 });
+}
+
+// PawaPay may send a HEAD request to verify the URL is reachable
+export async function HEAD() {
+  return new NextResponse(null, { status: 200 });
 }

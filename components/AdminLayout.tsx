@@ -1,424 +1,368 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
 import {
   LayoutDashboard,
   CreditCard,
-  QrCode,
   Users,
+  Settings,
   LogOut,
   Menu,
   X,
+  Loader2,
   ChevronLeft,
   ChevronRight,
-  Settings,
 } from "lucide-react";
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
-}
+const NAV_ITEMS = [
+  { icon: LayoutDashboard, label: "Dashboard",    href: "/admin/dashboard" },
+  { icon: CreditCard,      label: "Paiements",    href: "/admin/payments"  },
+  { icon: Users,           label: "Utilisateurs", href: "/admin/users"     },
+  { icon: Settings,        label: "Paramètres",   href: "/admin/settings"  },
+] as const;
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
-  const router = useRouter();
+const SIDEBAR_W      = 260;
+const SIDEBAR_W_COLL = 72;
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const router   = useRouter();
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  const [checking,   setChecking]   = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed,  setCollapsed]  = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  // ── Auth guard ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    const res = await fetch("/api/admin/auth");
-    if (!res.ok) {
-      router.push("/admin/login");
+    // Skip auth check on the login page itself
+    if (pathname === "/admin/login") {
+      setChecking(false);
+      return;
     }
-  };
 
-  const handleLogout = async () => {
-    await fetch("/api/admin/auth", { method: "DELETE" });
-    router.push("/admin/login");
-  };
+    fetch("/api/admin/auth")
+      .then((r) => {
+        if (!r.ok) router.replace("/admin/login");
+        else setChecking(false);
+      })
+      .catch(() => router.replace("/admin/login"));
+  }, [pathname, router]);
 
-  const menuItems = [
-    {
-      icon: LayoutDashboard,
-      label: "Dashboard",
-      href: "/admin/dashboard",
-    },
-    {
-      icon: CreditCard,
-      label: "Payments",
-      href: "/admin/payments",
-    },
-    {
-      icon: Users,
-      label: "Admin Users",
-      href: "/admin/users",
-    },
-    {
-      icon: QrCode,
-      label: "WhatsApp QR",
-      href: "/admin/whatsapp-qr",
-    },
-    {
-      icon: Settings,
-      label: "Settings",
-      href: "/admin/settings",
-    },
-  ];
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  const handleLogout = useCallback(async () => {
+    setLoggingOut(true);
+    try {
+      await fetch("/api/admin/auth", { method: "DELETE" });
+    } finally {
+      router.replace("/admin/login");
+    }
+  }, [router]);
+
+  // ── While verifying session ──────────────────────────────────────────────────
+  if (checking && pathname !== "/admin/login") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0f1220]">
+        <Loader2 size={28} className="animate-spin text-[#b4f75f]" />
+      </div>
+    );
+  }
+
+  // Login page renders without the shell
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+
+  const sidebarWidth = collapsed ? SIDEBAR_W_COLL : SIDEBAR_W;
 
   return (
-    <>
-      <style jsx global>{`
-        .admin-layout {
-          min-height: 100vh;
-          background: #f3f3f3;
-          display: flex;
-        }
+    <div style={{ display: "flex", minHeight: "100vh", background: "#0d1018", color: "#fff" }}>
 
-        .admin-sidebar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          bottom: 0;
-          width: 280px;
-          background: #11111a;
-          z-index: 50;
-          transform: translateX(-100%);
-          transition: all 0.3s ease;
-          display: flex;
-          flex-direction: column;
-        }
+      {/* ── Mobile overlay ── */}
+      {mobileOpen && (
+        <div
+          onClick={() => setMobileOpen(false)}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
+            zIndex: 40, display: "none",
+          }}
+          className="lg-hide"
+        />
+      )}
 
-        .admin-sidebar.collapsed {
-          width: 80px;
-        }
+      {/* ── Sidebar ── */}
+      <aside
+        style={{
+          position:        "fixed",
+          top:             0,
+          left:            0,
+          bottom:          0,
+          width:           `${sidebarWidth}px`,
+          background:      "#11111a",
+          borderRight:     "1px solid rgba(255,255,255,0.07)",
+          display:         "flex",
+          flexDirection:   "column",
+          zIndex:          50,
+          transition:      "width 200ms ease, transform 200ms ease",
+          overflowX:       "hidden",
+        }}
+        className={`admin-sidebar${mobileOpen ? " sidebar-open" : ""}`}
+      >
+        {/* Logo */}
+        <div style={{
+          display:        "flex",
+          alignItems:     "center",
+          justifyContent: collapsed ? "center" : "space-between",
+          padding:        collapsed ? "20px 0" : "20px 20px 20px 24px",
+          borderBottom:   "1px solid rgba(255,255,255,0.07)",
+          minHeight:      "70px",
+          gap:            "8px",
+        }}>
+          {!collapsed && (
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
+              <span style={{ color: "#b4f75f", fontSize: "20px", flexShrink: 0 }}>✦</span>
+              <span style={{ fontSize: "15px", fontWeight: 600, whiteSpace: "nowrap", color: "#fff" }}>
+                Afrique Solution
+              </span>
+            </div>
+          )}
+          {collapsed && (
+            <span style={{ color: "#b4f75f", fontSize: "22px" }}>✦</span>
+          )}
+          {/* Collapse toggle — desktop only */}
+          <button
+            onClick={() => setCollapsed((v) => !v)}
+            style={{
+              background:   "rgba(255,255,255,0.05)",
+              border:       "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "8px",
+              padding:      "4px",
+              cursor:       "pointer",
+              color:        "rgba(255,255,255,0.4)",
+              display:      "flex",
+              flexShrink:   0,
+            }}
+            className="collapse-btn"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          </button>
+        </div>
 
-        .admin-sidebar.open {
-          transform: translateX(0);
-        }
+        {/* Section label */}
+        {!collapsed && (
+          <p style={{
+            fontSize:       "10px",
+            fontWeight:     600,
+            letterSpacing:  "0.12em",
+            textTransform:  "uppercase",
+            color:          "rgba(255,255,255,0.25)",
+            padding:        "20px 24px 8px",
+          }}>
+            Navigation
+          </p>
+        )}
 
-        .admin-sidebar-logo {
-          padding: 32px 24px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          flex-shrink: 0;
-          position: relative;
-        }
+        {/* Nav items */}
+        <nav style={{ flex: 1, padding: collapsed ? "16px 0" : "0 12px", overflow: "hidden" }}>
+          {NAV_ITEMS.map(({ icon: Icon, label, href }) => {
+            const active = pathname.startsWith(href);
+            return (
+              <a
+                key={href}
+                href={href}
+                title={collapsed ? label : undefined}
+                style={{
+                  display:        "flex",
+                  alignItems:     "center",
+                  gap:            "12px",
+                  padding:        collapsed ? "10px 0" : "10px 14px",
+                  justifyContent: collapsed ? "center" : "flex-start",
+                  borderRadius:   "12px",
+                  marginBottom:   "4px",
+                  fontSize:       "14px",
+                  fontWeight:     active ? 600 : 400,
+                  color:          active ? "#0f1220" : "rgba(255,255,255,0.55)",
+                  background:     active ? "#b4f75f" : "transparent",
+                  textDecoration: "none",
+                  transition:     "background 150ms, color 150ms",
+                  whiteSpace:     "nowrap",
+                  overflow:       "hidden",
+                }}
+                onMouseEnter={(e) => {
+                  if (!active) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) (e.currentTarget as HTMLElement).style.background = "transparent";
+                }}
+              >
+                <Icon size={18} strokeWidth={active ? 2.5 : 1.8} style={{ flexShrink: 0 }} />
+                {!collapsed && label}
+              </a>
+            );
+          })}
+        </nav>
 
-        .admin-sidebar-logo h2 {
-          font-size: 24px;
-          font-weight: 600;
-          color: white;
-          margin: 0;
-          transition: opacity 0.3s;
-        }
+        {/* Logout */}
+        <div style={{
+          padding:      collapsed ? "16px 0" : "16px 12px",
+          borderTop:    "1px solid rgba(255,255,255,0.07)",
+        }}>
+          <button
+            onClick={handleLogout}
+            disabled={loggingOut}
+            title={collapsed ? "Déconnexion" : undefined}
+            style={{
+              display:        "flex",
+              alignItems:     "center",
+              gap:            "12px",
+              justifyContent: collapsed ? "center" : "flex-start",
+              width:          "100%",
+              padding:        collapsed ? "10px 0" : "10px 14px",
+              borderRadius:   "12px",
+              border:         "none",
+              background:     "transparent",
+              color:          "rgba(255,255,255,0.4)",
+              fontSize:       "14px",
+              cursor:         loggingOut ? "not-allowed" : "pointer",
+              opacity:        loggingOut ? 0.5 : 1,
+              whiteSpace:     "nowrap",
+              overflow:       "hidden",
+              transition:     "background 150ms, color 150ms",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.1)";
+              (e.currentTarget as HTMLElement).style.color      = "rgb(252,165,165)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "transparent";
+              (e.currentTarget as HTMLElement).style.color      = "rgba(255,255,255,0.4)";
+            }}
+          >
+            {loggingOut
+              ? <Loader2 size={18} className="animate-spin" style={{ flexShrink: 0 }} />
+              : <LogOut   size={18} strokeWidth={1.8}        style={{ flexShrink: 0 }} />
+            }
+            {!collapsed && (loggingOut ? "Déconnexion…" : "Déconnexion")}
+          </button>
+        </div>
+      </aside>
 
-        .admin-sidebar.collapsed .admin-sidebar-logo h2 {
-          opacity: 0;
-          font-size: 0;
-        }
+      {/* ── Main area ── */}
+      <div
+        style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}
+        className="admin-main"
+      >
+        {/* Top bar */}
+        <header style={{
+          height:           "64px",
+          borderBottom:     "1px solid rgba(255,255,255,0.07)",
+          background:       "#11111a",
+          display:          "flex",
+          alignItems:       "center",
+          padding:          "0 24px",
+          gap:              "16px",
+          position:         "sticky",
+          top:              0,
+          zIndex:           30,
+        }}>
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileOpen((v) => !v)}
+            className="mobile-menu-btn"
+            style={{
+              background:   "rgba(255,255,255,0.05)",
+              border:       "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "10px",
+              padding:      "7px",
+              cursor:       "pointer",
+              color:        "rgba(255,255,255,0.6)",
+              display:      "none",
+            }}
+            aria-label="Menu"
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
 
-        .admin-sidebar-logo p {
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.6);
-          margin: 8px 0 0 0;
-          transition: opacity 0.3s;
-        }
+          {/* Page title */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "16px", fontWeight: 600, color: "#fff" }}>
+              {NAV_ITEMS.find((n) => pathname.startsWith(n.href))?.label ?? "Admin"}
+            </span>
+          </div>
 
-        .admin-sidebar.collapsed .admin-sidebar-logo p {
-          opacity: 0;
-          font-size: 0;
-        }
+          <div style={{ flex: 1 }} />
 
-        .collapse-toggle {
-          position: absolute;
-          top: 32px;
-          right: -16px;
-          width: 32px;
-          height: 32px;
-          background: #b4f75f;
-          border: 2px solid #11111a;
-          border-radius: 50%;
-          display: none;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.2s;
-          z-index: 10;
-        }
+          {/* Admin badge */}
+          <div style={{
+            display:      "flex",
+            alignItems:   "center",
+            gap:          "8px",
+            background:   "rgba(255,255,255,0.05)",
+            border:       "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "12px",
+            padding:      "6px 12px",
+          }}>
+            <div style={{
+              width:        "28px",
+              height:       "28px",
+              borderRadius: "50%",
+              background:   "#b4f75f",
+              display:      "flex",
+              alignItems:   "center",
+              justifyContent: "center",
+              fontSize:     "12px",
+              fontWeight:   700,
+              color:        "#0f1220",
+            }}>
+              A
+            </div>
+            <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>
+              Admin
+            </span>
+          </div>
+        </header>
 
-        .collapse-toggle:hover {
-          transform: scale(1.1);
-        }
+        {/* Page content */}
+        <main style={{ flex: 1, padding: "28px 28px", overflowY: "auto" }}>
+          {children}
+        </main>
+      </div>
 
-        .collapse-toggle:active {
-          transform: scale(0.95);
-        }
-
-        .admin-sidebar-nav {
-          flex: 1;
-          padding: 16px;
-          overflow-y: auto;
-        }
-
-        .admin-sidebar-nav::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        .admin-sidebar-nav::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
-        .admin-sidebar-nav::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.2);
-          border-radius: 3px;
-        }
-
-        .admin-menu-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 14px 16px;
-          margin-bottom: 8px;
-          border-radius: 16px;
-          font-size: 15px;
-          font-weight: 500;
-          text-decoration: none;
-          transition: all 0.2s;
-          color: rgba(255, 255, 255, 0.8);
-          white-space: nowrap;
-          overflow: hidden;
-        }
-
-        .admin-sidebar.collapsed .admin-menu-item {
-          justify-content: center;
-          padding: 14px;
-        }
-
-        .admin-menu-item span {
-          transition: opacity 0.3s;
-        }
-
-        .admin-sidebar.collapsed .admin-menu-item span {
-          opacity: 0;
-          width: 0;
-        }
-
-        .admin-menu-item:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
-        }
-
-        .admin-menu-item.active {
-          background: #b4f75f;
-          color: #11111a;
-          box-shadow: 0 3px 0 rgba(180, 247, 95, 0.3);
-        }
-
-        .admin-sidebar-footer {
-          padding: 16px;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
-          flex-shrink: 0;
-        }
-
-        .admin-logout-btn {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 14px 16px;
-          width: 100%;
-          border: none;
-          border-radius: 16px;
-          font-size: 15px;
-          font-weight: 500;
-          background: transparent;
-          color: rgba(255, 255, 255, 0.8);
-          cursor: pointer;
-          transition: all 0.2s;
-          white-space: nowrap;
-          overflow: hidden;
-        }
-
-        .admin-sidebar.collapsed .admin-logout-btn {
-          justify-content: center;
-          padding: 14px;
-        }
-
-        .admin-logout-btn span {
-          transition: opacity 0.3s;
-        }
-
-        .admin-sidebar.collapsed .admin-logout-btn span {
-          opacity: 0;
-          width: 0;
-        }
-
-        .admin-logout-btn:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
-        }
-
-        .admin-overlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.5);
-          z-index: 40;
-          display: none;
-        }
-
-        .admin-overlay.show {
-          display: block;
-        }
-
-        .admin-main {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          min-height: 100vh;
-        }
-
-        .admin-header {
-          background: white;
-          border-bottom: 1px solid #11111a;
-          box-shadow: 0 2px 0 #11111a;
-          flex-shrink: 0;
-        }
-
-        .admin-header-content {
-          padding: 24px;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .admin-menu-toggle {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 44px;
-          height: 44px;
-          border: 1px solid #11111a;
-          border-radius: 12px;
-          background: #f3f3f3;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .admin-menu-toggle:hover {
-          background: #e5e5e5;
-        }
-
-        .admin-content {
-          flex: 1;
-          padding: 40px 24px;
-          overflow-y: auto;
-        }
-
+      {/* ── Responsive styles ── */}
+      <style>{`
+        /* Desktop: sidebar always visible, push main content */
         @media (min-width: 1024px) {
           .admin-sidebar {
-            position: sticky;
-            top: 0;
-            transform: translateX(0);
-            height: 100vh;
+            transform: translateX(0) !important;
           }
-
-          .collapse-toggle {
-            display: flex;
+          .admin-main {
+            margin-left: ${sidebarWidth}px;
+            transition: margin-left 200ms ease;
           }
-
-          .admin-menu-toggle {
-            display: none;
-          }
-
-          .admin-overlay {
-            display: none !important;
-          }
-
-          .admin-content {
-            padding: 40px 48px;
-          }
+          .mobile-menu-btn { display: none !important; }
+          .collapse-btn    { display: flex !important; }
         }
-
+        /* Mobile: sidebar off-canvas, hamburger visible */
         @media (max-width: 1023px) {
-          .collapse-toggle {
-            display: none;
+          .admin-sidebar {
+            width: ${SIDEBAR_W}px !important;
+            transform: translateX(-100%);
           }
+          .admin-sidebar.sidebar-open {
+            transform: translateX(0);
+          }
+          .admin-main    { margin-left: 0 !important; }
+          .mobile-menu-btn { display: flex !important; }
+          .collapse-btn    { display: none !important; }
+          .lg-hide         { display: block !important; }
         }
       `}</style>
-
-      <div className="admin-layout">
-        {/* Sidebar */}
-        <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""} ${sidebarCollapsed ? "collapsed" : ""}`}>
-          <div className="admin-sidebar-logo">
-            <h2>Afrique Solution</h2>
-            <p>Admin Panel</p>
-            <button 
-              className="collapse-toggle"
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-            </button>
-          </div>
-
-          <nav className="admin-sidebar-nav">
-            {menuItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`admin-menu-item ${
-                  pathname === item.href ? "active" : ""
-                }`}
-                onClick={() => setSidebarOpen(false)}
-                title={sidebarCollapsed ? item.label : ""}
-              >
-                <item.icon size={22} strokeWidth={2} />
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </nav>
-
-          <div className="admin-sidebar-footer">
-            <button onClick={handleLogout} className="admin-logout-btn" title={sidebarCollapsed ? "Logout" : ""}>
-              <LogOut size={22} strokeWidth={2} />
-              <span>Logout</span>
-            </button>
-          </div>
-        </aside>
-
-        {/* Mobile overlay */}
-        <div
-          className={`admin-overlay ${sidebarOpen ? "show" : ""}`}
-          onClick={() => setSidebarOpen(false)}
-        />
-
-        {/* Main Content */}
-        <div className="admin-main">
-          <header className="admin-header">
-            <div className="admin-header-content">
-              <button
-                className="admin-menu-toggle"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-              >
-                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-              <div>
-                <h1 style={{ fontSize: "28px", fontWeight: 500, color: "#11111a", margin: 0 }}>
-                  Admin <span style={{ display: "inline-block", borderRadius: "6px", background: "#b4f75f", padding: "4px 8px" }}>Dashboard</span>
-                </h1>
-                <p style={{ fontSize: "14px", color: "#343438", margin: "4px 0 0 0" }}>
-                  Afrique Solution
-                </p>
-              </div>
-            </div>
-          </header>
-
-          <main className="admin-content">{children}</main>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
